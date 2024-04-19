@@ -18,6 +18,16 @@ export class Not implements Sql {
 	}
 }
 
+export enum CmpOp {
+	Eq,
+	Ne,
+	Lt,
+	Le,
+	Gt,
+	Ge,
+	Like,
+}
+
 export class Binary implements Sql {
 	static eq(field: SqlElement, value?: SqlElement): Sql {
 		return new Binary("=", field, value);
@@ -99,13 +109,18 @@ export class Between implements Sql {
 	}
 }
 
-export class Logical implements Sql {
+export enum RelOp {
+	And,
+	Or,
+}
+
+export class Relation implements Sql {
 	static and(args: Array<SqlElement>): Sql {
-		return new Logical("and", args);
+		return new Relation("and", args);
 	}
 
 	static or(args: Array<SqlElement>): Sql {
-		return new Logical("or", args);
+		return new Relation("or", args);
 	}
 
 	args: Array<SqlElement>;
@@ -119,7 +134,7 @@ export class Logical implements Sql {
 	sql(): string {
 		return this.args
 			.map((a) => {
-				return a instanceof Logical ? wrap(a) : a;
+				return a instanceof Relation ? wrap(a) : a;
 			})
 			.map(toStr)
 			.join(` ${this.op} `);

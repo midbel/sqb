@@ -33,6 +33,14 @@ export class Case implements Sql {
 	}
 }
 
+export enum SqlType {
+	Int,
+	Decimal,
+	Char,
+	Varchar,
+	Date,
+}
+
 export class Cast implements Sql {
 	static asInt(field: SqlElement): Sql {
 		return new Cast(field, "int");
