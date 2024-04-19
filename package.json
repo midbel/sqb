@@ -1,0 +1,22 @@
+{
+  "name": "squiz",
+  "version": "0.1.0",
+  "description": "simple SQL query builder",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest",
+    "lint": "biome lint --apply src",
+    "format": "biome format --write src"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@biomejs/biome": "1.7.0",
+    "@eslint/js": "^9.0.0",
+    "@vitest/ui": "^1.5.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.5.0"
+  }
+}
