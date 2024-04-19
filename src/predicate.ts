@@ -99,10 +99,24 @@ export class Between implements Sql {
 	}
 }
 
-export function and(parts: string[] | Sql[]): Sql {
-	return;
-}
+export class Logical implements Sql {
+	static and(args: Array<SqlElement>): Sql {
+		return new Logical("and", args);
+	}
 
-export function or(parts: string[] | Sql[]): Sql {
-	return;
+	static or(args: Array<SqlElement>): Sql {
+		return new Logical("or", args);
+	}
+
+	args: Array<SqlElement>;
+	op: string;
+
+	constructor(op: string, args: Array<SqlElement>) {
+		this.op = op;
+		this.args = args;
+	}
+
+	sql(): string {
+		return this.args.map(toString).join(` ${this.op} `);
+	}
 }
