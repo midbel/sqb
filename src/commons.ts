@@ -12,6 +12,27 @@ export function isSql(str: SqlElement): str is Sql {
 	return (str as Sql).sql !== undefined;
 }
 
+export class Case implements Sql {
+	field?: SqlElement;
+	alt?: SqlElement;
+
+	constructor(field?: SqlElement) {
+		this.field = field;
+	}
+
+	when(cdt: SqlElement, stmt: SqlElement): Case {
+		return this;
+	}
+
+	alt(stmt: SqlElement): Case {
+		return this;
+	}
+
+	sql(): string {
+		return "";
+	}
+}
+
 export class Cast implements Sql {
 	static asInt(field: SqlElement): Sql {
 		return new Cast(field, "int");
