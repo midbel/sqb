@@ -1,4 +1,4 @@
-import { type Sql, SqlElement, isSql } from "./commons";
+import { type Sql, type SqlElement, isSql } from "./commons";
 import { Binary } from "./predicate";
 import { toStr } from "./helpers";
 

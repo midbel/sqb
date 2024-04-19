@@ -34,7 +34,7 @@ describe("select", () => {
 	});
 
 	test("select with limit and offset", () => {
-		const q = Select.from("table").count(100).at(150);
+		const q = Select.from("table").count(Literal.numeric(100)).at(Literal.numeric(150));
 		expect(q.sql()).toBe("select * from table limit 100 offset 150");
 	});
 

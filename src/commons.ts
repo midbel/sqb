@@ -1,5 +1,6 @@
 import { Select } from "./select";
 import { Expr } from "./literal";
+import { toStr } from "./helpers";
 
 export interface Sql {
 	sql(): string;
@@ -9,6 +10,40 @@ export type SqlElement = string | Sql;
 
 export function isSql(str: SqlElement): str is Sql {
 	return (str as Sql).sql !== undefined;
+}
+
+export class Cast implements Sql {
+	static asInt(field: SqlElement): Sql {
+		return new Cast(field, "int");
+	}
+
+	static asVarchar(field: SqlElement, len: number): Sql {
+		return new Cast(field, `varchar(${len})`);
+	}
+
+	static asChar(field: SqlElement, len: number): Sql {
+		return new Cast(field, `char(${len})`);
+	}
+
+	static asDecimal(field: SqlElement, len: number, prec: number): Sql {
+		return new Cast(field, `decimal(${len}, ${prec})`);
+	}
+
+	static asDate(field: SqlElement): Sql {
+		return new Cast(field, "date");
+	}
+
+	field: SqlElement;
+	type: string;
+
+	constructor(field: SqlElement, type: string) {
+		this.field = field;
+		this.type = type;
+	}
+
+	sql(): string {
+		return `cast(${toStr(this.field)} as ${this.type})`;
+	}
 }
 
 export class Alias implements Sql {

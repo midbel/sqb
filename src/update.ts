@@ -1,5 +1,6 @@
-import { type Sql, SqlElement, isSql } from "./commons";
+import { type Sql, type SqlElement, isSql } from "./commons";
 import { Binary } from "./predicate";
+import { toStr } from "./helpers";
 
 export class Update implements Sql {
 	static update(table: SqlElement): Update {
@@ -39,7 +40,6 @@ export class Update implements Sql {
 			query.push("where");
 			query.push(wheres.join(" and "));
 		}
-		return query.join(" ");
 		return query.join(" ");
 	}
 }

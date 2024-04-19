@@ -66,8 +66,8 @@ export class Select implements Sql {
 
 	table: SqlElement;
 	uniq: boolean;
-	limit: number;
-	offset: number;
+	limit?: SqlElement;
+	offset?: SqlElement;
 	fields: Array<SqlElement>;
 	joins: Array<SqlElement>;
 	wheres: Array<SqlElement>;
@@ -84,8 +84,6 @@ export class Select implements Sql {
 		this.havings = [];
 		this.orders = [];
 		this.wheres = [];
-		this.limit = 0;
-		this.offset = 0;
 	}
 
 	join(table: string | Join): Select {
@@ -136,12 +134,12 @@ export class Select implements Sql {
 		return this;
 	}
 
-	at(offset: number): Select {
+	at(offset: SqlElement): Select {
 		this.offset = offset;
 		return this;
 	}
 
-	count(limit: number): Select {
+	count(limit: SqlElement): Select {
 		this.limit = limit;
 		return this;
 	}
@@ -150,16 +148,15 @@ export class Select implements Sql {
 		if (!this.fields.length) {
 			this.fields.push("*");
 		}
-		const fields = this.fields.map((f) => (isSql(f) ? f.sql() : f));
-		const table = isSql(this.table) ? this.table.sql() : this.table;
+		const fields = this.fields.map(toStr);
 
-		const query: Array<any> = ["select"];
+		const query: Array<string> = ["select"];
 		if (this.uniq) {
 			query.push("distinct");
 		}
 		query.push(fields.join(", "));
 		query.push("from");
-		query.push(table);
+		query.push(toStr(this.table));
 
 		if (this.joins.length) {
 			const joins = this.joins.map(toStr);
@@ -186,12 +183,12 @@ export class Select implements Sql {
 
 		if (this.limit) {
 			query.push("limit");
-			query.push(this.limit);
+			query.push(toStr(this.limit));
 		}
 
 		if (this.offset) {
 			query.push("offset");
-			query.push(this.offset);
+			query.push(toStr(this.offset));
 		}
 
 		return query.join(" ");
