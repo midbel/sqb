@@ -1,4 +1,4 @@
-import { type Sql, SqlElement, isSql, wrap } from "./commons";
+import { type Sql, type SqlElement, isSql, wrap } from "./commons";
 import { placeholder } from "./literal";
 import { toStr } from "./helpers";
 

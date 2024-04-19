@@ -35,7 +35,7 @@ export class Column implements Sql {
 		return new Column(field, table, "");
 	}
 
-	static all(table: string = ""): Sql {
+	static all(table = ""): Sql {
 		return new Column("*", table, "");
 	}
 

@@ -25,6 +25,12 @@ export class Insert implements Sql {
 		return this;
 	}
 
+	set(field: SqlElement, value: SqlElement): Insert {
+		this.columns.push(field);
+		this.values.push(value);
+		return this;
+	}
+
 	column(name: SqlElement | Array<SqlElement>): Insert {
 		const cs = Array.isArray(name) ? name : [name];
 		this.columns = this.columns.concat(cs);
