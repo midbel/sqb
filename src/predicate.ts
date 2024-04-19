@@ -117,6 +117,11 @@ export class Logical implements Sql {
 	}
 
 	sql(): string {
-		return this.args.map(toString).join(` ${this.op} `);
+		return this.args
+			.map((a) => {
+				return a instanceof Logical ? wrap(a) : a;
+			})
+			.map(toStr)
+			.join(` ${this.op} `);
 	}
 }
