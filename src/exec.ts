@@ -29,9 +29,8 @@ export class Exec implements Sql {
 		return new Exec("max", args);
 	}
 
-	fn: string
-	args: Array<Sql>
-
+	fn: string;
+	args: Array<Sql>;
 
 	constructor(fn: string, args: Array<Sql>) {
 		this.fn = fn;

@@ -16,8 +16,8 @@ export class Alias implements Sql {
 		return new Alias(name, alias);
 	}
 
-	name: SqlElement
-	alias: string
+	name: SqlElement;
+	alias: string;
 
 	constructor(name: SqlElement, alias: string) {
 		this.name = wrap(name);
@@ -35,13 +35,13 @@ export class Column implements Sql {
 		return new Column(field, table, "");
 	}
 
-	static all(table: string = undefined): Sql {
+	static all(table: string = ""): Sql {
 		return new Column("*", table, "");
 	}
 
-	name: string
-	table: string
-	schema: string
+	name: string;
+	table: string;
+	schema: string;
 
 	constructor(name: string, table: string, schema: string) {
 		this.name = name;
@@ -55,8 +55,7 @@ export class Column implements Sql {
 }
 
 export class WrappedSql implements Sql {
-
-	wrapped: Sql
+	wrapped: Sql;
 
 	constructor(sql: Sql) {
 		this.wrapped = sql;

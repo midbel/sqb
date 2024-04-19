@@ -7,7 +7,8 @@
     "build": "tsc -b",
     "test": "vitest",
     "lint": "biome lint --apply src",
-    "format": "biome format --write src"
+    "format": "biome format --write src",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
     "@biomejs/biome": "1.7.0",
     "@eslint/js": "^9.0.0",
     "@vitest/ui": "^1.5.0",
+    "husky": "^9.0.11",
     "typescript": "^5.4.5",
     "vitest": "^1.5.0"
   }

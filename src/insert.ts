@@ -1,7 +1,7 @@
 import { type Sql, type SqlElement, isSql } from "./commons";
 import type { Select } from "./select";
 import { placeholder } from "./literal";
-import { toStr } from './helpers'
+import { toStr } from "./helpers";
 
 export class Insert implements Sql {
 	static into(table: SqlElement): Insert {
@@ -9,13 +9,13 @@ export class Insert implements Sql {
 	}
 
 	table: SqlElement;
-	query: Select;
+	query: Select | undefined;
 	columns: Array<SqlElement>;
 	values: Array<SqlElement>;
 
 	constructor(table: SqlElement) {
 		this.table = table;
-		this.query = null;
+		this.query = undefined;
 		this.columns = [];
 		this.values = [];
 	}
@@ -26,13 +26,13 @@ export class Insert implements Sql {
 	}
 
 	column(name: SqlElement | Array<SqlElement>): Insert {
-		const cs = Array.isArray(name) ? name : [name]
+		const cs = Array.isArray(name) ? name : [name];
 		this.columns = this.columns.concat(cs);
 		return this;
 	}
 
 	value(value: SqlElement | Array<SqlElement>): Insert {
-		const vs = Array.isArray(value) ? value : [value]
+		const vs = Array.isArray(value) ? value : [value];
 		this.values = this.values.concat(vs);
 		return this;
 	}
@@ -46,7 +46,9 @@ export class Insert implements Sql {
 
 	private insertQuery(): string {
 		const columns = this.columns.map(toStr);
-		return `insert into ${toStr(this.table)} (${columns.join(", ")}) ${this.query.sql()}`;
+		return `insert into ${toStr(this.table)} (${columns.join(
+			", ",
+		)}) ${this.query?.sql()}`;
 	}
 
 	private insertValues(): string {
@@ -60,8 +62,8 @@ export class Insert implements Sql {
 		} else {
 			values = this.columns.map((_) => placeholder());
 		}
-		return `insert into ${toStr(this.table)} (${columns.join(", ")}) values (${values.join(
+		return `insert into ${toStr(this.table)} (${columns.join(
 			", ",
-		)})`;
+		)}) values (${values.join(", ")})`;
 	}
 }
