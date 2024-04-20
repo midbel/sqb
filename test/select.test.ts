@@ -1,14 +1,19 @@
-import { describe, expect, test } from "vitest";
-import { Alias, Column } from "../src/commons";
+import { describe, expect, test, beforeEach } from "vitest";
+import { Alias, Column, Table } from "../src/commons";
 import { Literal } from "../src/literal";
 import { Binary } from "../src/predicate";
 import { Join, Order, Select } from "../src/select";
 import { Exec } from "../src/exec";
 
 describe("select", () => {
+	beforeEach(() => Alias.withAs = true)
 	test("select *", () => {
-		const q = Select.from("table");
+		let q = Select.from("table");
 		expect(q.sql()).toBe("select * from table");
+
+		let t = Table.make("table", "", "t")
+		q = Select.from(t)
+		expect(q.sql()).toBe("select * from table as t")
 	});
 
 	test("select field", () => {
@@ -42,6 +47,12 @@ describe("select", () => {
 		let q = Select.from(Alias.make("table", "t"));
 		q = q.column(Column.make("field", "t"));
 		expect(q.sql()).toBe("select t.field from table as t");
+
+		Alias.withAs = false
+
+		q = Select.from(Alias.make("table", "t"));
+		q = q.column(Column.make("field", "t"));
+		expect(q.sql()).toBe("select t.field from table t");
 	});
 
 	test("select with field and table alias", () => {

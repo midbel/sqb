@@ -195,32 +195,40 @@ export class Select implements Sql {
 	}
 }
 
+export enum SqlJoinType {
+	Left = "left",
+	Right = "right",
+	Full = "full",
+	Inner = "inner",
+	Cross = "cross",
+}
+
 export class Join implements Sql {
 	static left(table: SqlElement): Join {
-		return new Join(table, "left");
+		return new Join(table, SqlJoinType.Left);
 	}
 
 	static right(table: SqlElement): Join {
-		return new Join(table, "right");
+		return new Join(table, SqlJoinType.Right);
 	}
 
 	static cross(table: SqlElement): Join {
-		return new Join(table, "cross");
+		return new Join(table, SqlJoinType.Cross);
 	}
 
 	static full(table: SqlElement): Join {
-		return new Join(table, "full");
+		return new Join(table, SqlJoinType.Full);
 	}
 
 	static inner(table: SqlElement): Join {
-		return new Join(table, "inner");
+		return new Join(table, SqlJoinType.Inner);
 	}
 
 	table: SqlElement;
-	join: string;
+	join: SqlJoinType;
 	conditions: Array<SqlElement>;
 
-	constructor(table: SqlElement, type: string) {
+	constructor(table: SqlElement, type: SqlJoinType) {
 		this.table = wrap(table);
 		this.join = type;
 		this.conditions = [];

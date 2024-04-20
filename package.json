@@ -1,24 +1,42 @@
 {
   "name": "squiz",
   "version": "0.1.0",
-  "description": "simple SQL query builder",
+  "description": "a damned simple SQL query builder",
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "module": "dist/index.mjs",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsup",
     "test": "vitest",
     "lint": "biome lint --apply src",
     "format": "biome format --write src",
     "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "sql",
+    "query builder"
+  ],
+  "author": "midbel",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/midbel/sqb.git"
+  },
+  "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "1.7.0",
     "@eslint/js": "^9.0.0",
+    "@vitest/coverage-v8": "^1.5.0",
     "@vitest/ui": "^1.5.0",
     "husky": "^9.0.11",
+    "tsup": "^8.0.2",
     "typescript": "^5.4.5",
     "vitest": "^1.5.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">= 20.12.2"
   }
 }

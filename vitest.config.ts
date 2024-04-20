@@ -4,5 +4,8 @@ import { defineConfig
 export default defineConfig({
   test: {
     onConsoleLog: () => true,
+    coverage: {
+      reporter: ['html']
+    }
   },
 })

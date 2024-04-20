@@ -1,30 +1,38 @@
 import { type Sql, isSql, wrap } from "./commons";
 
+export enum SqlOp {
+	Add = "+",
+	Sub = "-",
+	Mul = "*",
+	Div = "/",
+	Concat = "||",
+}
+
 export class Expr implements Sql {
 	static add(left: string | Sql | Expr, right: string | Sql | Expr): Expr {
-		return new Expr(left, right, "+");
+		return new Expr(left, right, SqlOp.Add);
 	}
 	static sub(left: string | Sql | Expr, right: string | Sql | Expr): Expr {
-		return new Expr(left, right, "-");
+		return new Expr(left, right, SqlOp.Sub);
 	}
 	static mul(left: string | Sql | Expr, right: string | Sql | Expr): Expr {
-		return new Expr(left, right, "*");
+		return new Expr(left, right, SqlOp.Mul);
 	}
 	static div(left: string | Sql | Expr, right: string | Sql | Expr): Expr {
-		return new Expr(left, right, "/");
+		return new Expr(left, right, SqlOp.Div);
 	}
 	static concat(left: string | Sql | Expr, right: string | Sql | Expr): Expr {
-		return new Expr(left, right, "||");
+		return new Expr(left, right, SqlOp.Concat);
 	}
 
 	left: string | Sql | Expr;
 	right: string | Sql | Expr;
-	op: string;
+	op: SqlOp;
 
 	constructor(
 		left: string | Sql | Expr,
 		right: string | Sql | Expr,
-		op: string,
+		op: SqlOp,
 	) {
 		this.left = wrap(left);
 		this.right = wrap(right);

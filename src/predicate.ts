@@ -18,50 +18,50 @@ export class Not implements Sql {
 	}
 }
 
-export enum CmpOp {
-	Eq = 0,
-	Ne = 1,
-	Lt = 2,
-	Le = 3,
-	Gt = 4,
-	Ge = 5,
-	Like = 6,
+export enum SqlCmpOp {
+	Eq = "=",
+	Ne = "<>",
+	Lt = "<",
+	Le = "<=",
+	Gt = ">",
+	Ge = ">=",
+	Like = "like",
 }
 
 export class Binary implements Sql {
 	static eq(field: SqlElement, value?: SqlElement): Sql {
-		return new Binary("=", field, value);
+		return new Binary(SqlCmpOp.Eq, field, value);
 	}
 
 	static ne(field: SqlElement, value?: SqlElement): Sql {
-		return new Binary("<>", field, value);
+		return new Binary(SqlCmpOp.Ne, field, value);
 	}
 
 	static lt(field: SqlElement, value?: SqlElement): Sql {
-		return new Binary("<", field, value);
+		return new Binary(SqlCmpOp.Lt, field, value);
 	}
 
 	static le(field: SqlElement, value?: SqlElement): Sql {
-		return new Binary("<=", field, value);
+		return new Binary(SqlCmpOp.Le, field, value);
 	}
 
 	static gt(field: SqlElement, value?: SqlElement): Sql {
-		return new Binary(">", field, value);
+		return new Binary(SqlCmpOp.Gt, field, value);
 	}
 
 	static ge(field: SqlElement, value: SqlElement): Sql {
-		return new Binary(">=", field, value);
+		return new Binary(SqlCmpOp.Ge, field, value);
 	}
 
 	static like(field: SqlElement, value: SqlElement): Sql {
-		return new Binary("like", field, value);
+		return new Binary(SqlCmpOp.Like, field, value);
 	}
 
 	left: SqlElement;
 	right: SqlElement;
-	op: string;
+	op: SqlCmpOp;
 
-	constructor(op: string, left: SqlElement, right?: SqlElement) {
+	constructor(op: SqlCmpOp, left: SqlElement, right?: SqlElement) {
 		this.left = left;
 		this.right = right ? wrap(right) : placeholder();
 		this.op = op;
@@ -109,24 +109,24 @@ export class Between implements Sql {
 	}
 }
 
-export enum RelOp {
-	And = 0,
-	Or = 1,
+export enum SqlRelOp {
+	And = "and",
+	Or = "or",
 }
 
 export class Relation implements Sql {
 	static and(args: Array<SqlElement>): Sql {
-		return new Relation("and", args);
+		return new Relation(SqlRelOp.And, args);
 	}
 
 	static or(args: Array<SqlElement>): Sql {
-		return new Relation("or", args);
+		return new Relation(SqlRelOp.Or, args);
 	}
 
 	args: Array<SqlElement>;
-	op: string;
+	op: SqlRelOp;
 
-	constructor(op: string, args: Array<SqlElement>) {
+	constructor(op: SqlRelOp, args: Array<SqlElement>) {
 		this.op = op;
 		this.args = args;
 	}

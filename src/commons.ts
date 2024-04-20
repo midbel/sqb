@@ -17,6 +17,10 @@ export class Table implements Sql {
 	schema: string;
 	alias?: string;
 
+	static make(name: string, schema: string, alias?: string): Table {
+		return new Table(name, schema, alias);
+	}
+
 	constructor(name: string, schema: string, alias?: string) {
 		this.name = name;
 		this.schema = schema;
@@ -47,30 +51,56 @@ export class Table implements Sql {
 export class Case implements Sql {
 	field?: SqlElement;
 	alt?: SqlElement;
+	cdts: Array<SqlElement>;
+	stmts: Array<SqlElement>;
+
+	static make(): Case {
+		return new Case();
+	}
 
 	constructor(field?: SqlElement) {
 		this.field = field;
+		this.cdts = [];
+		this.stmts = [];
 	}
 
 	when(cdt: SqlElement, stmt: SqlElement): Case {
+		this.stmts.push(stmt);
+		this.cdts.push(cdt);
 		return this;
 	}
 
 	alternative(stmt: SqlElement): Case {
+		this.alt = stmt;
 		return this;
 	}
 
 	sql(): string {
-		return "";
+		const parts = ["case"];
+		if (this.field) {
+			parts.push(toStr(this.field));
+		}
+		this.cdts.forEach((c: SqlElement, i: number) => {
+			parts.push("when");
+			parts.push(toStr(c));
+			parts.push("then");
+			parts.push(toStr(this.stmts[i]));
+		});
+		if (this.alt) {
+			parts.push("else");
+			parts.push(toStr(this.alt));
+		}
+		parts.push("end");
+		return parts.join(" ");
 	}
 }
 
 export enum SqlType {
-	Int = 0,
-	Decimal = 1,
-	Char = 2,
-	Varchar = 3,
-	Date = 4,
+	Int = "int",
+	Decimal = "decimal",
+	Char = "char",
+	Varchar = "varchar",
+	Date = "date",
 }
 
 export class Cast implements Sql {
@@ -108,6 +138,8 @@ export class Cast implements Sql {
 }
 
 export class Alias implements Sql {
+	static withAs = true;
+
 	static make(name: SqlElement, alias: string): Sql {
 		return new Alias(name, alias);
 	}
@@ -121,8 +153,13 @@ export class Alias implements Sql {
 	}
 
 	sql(): string {
-		const name = isSql(this.name) ? this.name.sql() : this.name;
-		return `${name} as ${this.alias}`;
+		const parts: Array<string> = [];
+		parts.push(toStr(this.name));
+		if (Alias.withAs) {
+			parts.push("as");
+		}
+		parts.push(this.alias);
+		return parts.join(" ");
 	}
 }
 

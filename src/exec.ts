@@ -9,8 +9,24 @@ export class Exec implements Sql {
 		return new Exec("length", args);
 	}
 
+	static mod(args: Array<Sql>): Sql {
+		return new Exec("mod", args);
+	}
+
 	static substr(args: Array<Sql>): Sql {
 		return new Exec("substr", args);
+	}
+
+	static coalesce(args: Array<Sql>): Sql {
+		return new Exec("coalesce", args);
+	}
+
+	static ifnull(args: Array<Sql>): Sql {
+		return new Exec("ifnull", args);
+	}
+
+	static isnull(args: Array<Sql>): Sql {
+		return new Exec("isnull", args);
 	}
 
 	static avg(args: Array<Sql>): Sql {
