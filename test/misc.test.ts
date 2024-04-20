@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { Case } from "../src/commons"
-import { Literal } from "../src/literal"
+import { Literal, Expr } from "../src/literal"
+import { Exec } from "../src/exec"
 import { Binary } from "../src/predicate"
 
 describe("case", () => {
@@ -21,5 +22,23 @@ describe("case", () => {
 			.alternative(Literal.str("foobar"))
 
 		expect(c.sql()).toBe("case field when 0 then 'foo' when 1 then 'bar' else 'foobar' end")
+	})
+})
+
+describe("expr and function", () => {
+
+	test("expr add/mul", () => {
+		const e = Expr.add("field", Literal.numeric(1)).mul("field")
+		expect(e.sql()).toBe("(field + 1) * field")
+	})
+
+	test("expr div/func", () => {
+		const e = Expr.div("field", Exec.mod(["field", Literal.numeric(10)]))
+		expect(e.sql()).toBe("field / mod(field, 10)")
+	})
+
+	test("concat", () => {
+		const e = Expr.concat("field0", "field1")
+		expect(e.sql()).toBe("field0 || field1")
 	})
 })
