@@ -1,4 +1,4 @@
-import type { Sql } from "./commons";
+import type { Sql, SqlElement } from "./commons";
 import { toStr } from "./helpers";
 
 export class Exec implements Sql {

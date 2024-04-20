@@ -2,25 +2,36 @@ import { type Sql, type SqlElement, isSql, wrap } from "./commons";
 import { Binary } from "./predicate";
 import { toStr } from "./helpers";
 
-export class Set implements Sql {
-	static union(q1: Select, q2: Select, all = false): Sql {
-		return new Set("union", q1, q2, all);
+export enum SqlSetOp {
+	Union = "union",
+	Intersect = "intersect",
+	Except = "except",
+}
+
+export class Sets implements Sql {
+	static union(q1: Select | Set, q2: Select | Set, all = false): Sql {
+		return new Sets(SqlSetOp.Union, q1, q2, all);
 	}
 
-	static intersect(q1: Select, q2: Select, all = false): Sql {
-		return new Set("intersect", q1, q2, all);
+	static intersect(q1: Select | Set, q2: Select | Set, all = false): Sql {
+		return new Sets(SqlSetOp.Intersect, q1, q2, all);
 	}
 
-	static except(q1: Select, q2: Select, all = false): Sql {
-		return new Set("except", q1, q2, all);
+	static except(q1: Select | Set, q2: Select | Set, all = false): Sql {
+		return new Sets(SqlSetOp.Except, q1, q2, all);
 	}
 
-	type: string;
-	left: Select;
-	right: Select;
+	type: SqlSetOp;
+	left: Select | Set;
+	right: Select | Set;
 	all: boolean;
 
-	constructor(type: string, q1: Select, q2: Select, all: boolean) {
+	constructor(
+		type: SqlSetOp,
+		q1: Select | Set,
+		q2: Select | Set,
+		all: boolean,
+	) {
 		this.type = type;
 		this.left = q1;
 		this.right = q2;
@@ -28,12 +39,9 @@ export class Set implements Sql {
 	}
 
 	sql(): string {
-		return [
-			this.left.sql(),
-			this.type,
-			this.all ? "all" : "",
-			this.right.sql(),
-		].join(" ");
+		return [this.left.sql(), this.type, this.all ? "all" : "", this.right.sql()]
+			.filter((s: string) => s)
+			.join(" ");
 	}
 }
 

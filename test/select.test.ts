@@ -2,11 +2,12 @@ import { describe, expect, test, beforeEach } from "vitest";
 import { Alias, Column, Table } from "../src/commons";
 import { Literal } from "../src/literal";
 import { Binary } from "../src/predicate";
-import { Join, Order, Select } from "../src/select";
+import { Join, Order, Select, Sets } from "../src/select";
 import { Exec } from "../src/exec";
 
 describe("select", () => {
 	beforeEach(() => Alias.withAs = true)
+
 	test("select *", () => {
 		let q = Select.from("table");
 		expect(q.sql()).toBe("select * from table");
@@ -111,4 +112,11 @@ describe("select", () => {
 			.order(Order.asc(Column.make("other", "t")));
 		expect(q.sql()).toBe("select * from table order by field asc, t.other asc");
 	});
+
+	test("union all", () => {
+		const q1 = Select.from("table1").column("field")
+		const q2 = Select.from("table2").column("field")
+		const q = Sets.union(q1, q2)
+		expect(q.sql()).toBe("select field from table1 union select field from table2")
+	})
 });
