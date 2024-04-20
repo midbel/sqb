@@ -35,6 +35,15 @@ export class Update implements Sql {
 
 	sql(): string {
 		const query: Array<string> = ["update", toStr(this.table), "set"];
+		if (this.values.length > 0 && this.columns.length !== this.values.length) {
+			throw new Error("insert: number of columns/values mismatched");
+		}
+		const fields: Array<string> = this.columns.map(
+			(c: SqlElement, i: number) => {
+				return `${toStr(c)}=${toStr(this.values[i])}`;
+			},
+		);
+		query.push(fields.join(", "));
 		if (this.wheres.length) {
 			const wheres = this.wheres.map(toStr);
 			query.push("where");

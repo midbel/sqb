@@ -19,13 +19,13 @@ export class Not implements Sql {
 }
 
 export enum CmpOp {
-	Eq,
-	Ne,
-	Lt,
-	Le,
-	Gt,
-	Ge,
-	Like,
+	Eq = 0,
+	Ne = 1,
+	Lt = 2,
+	Le = 3,
+	Gt = 4,
+	Ge = 5,
+	Like = 6,
 }
 
 export class Binary implements Sql {
@@ -110,8 +110,8 @@ export class Between implements Sql {
 }
 
 export enum RelOp {
-	And,
-	Or,
+	And = 0,
+	Or = 1,
 }
 
 export class Relation implements Sql {

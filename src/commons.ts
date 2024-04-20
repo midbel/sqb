@@ -12,6 +12,38 @@ export function isSql(str: SqlElement): str is Sql {
 	return (str as Sql).sql !== undefined;
 }
 
+export class Table implements Sql {
+	name: string;
+	schema: string;
+	alias?: string;
+
+	constructor(name: string, schema: string, alias?: string) {
+		this.name = name;
+		this.schema = schema;
+		this.alias = alias;
+	}
+
+	column(name: string, alias?: string): Sql {
+		const c = Column.make(name, this.alias || this.name);
+		if (alias) {
+			return Alias.make(c, alias);
+		}
+		return c;
+	}
+
+	sql(): string {
+		const parts: Array<string> = [];
+		if (this.schema) {
+			parts.push(this.schema);
+		}
+		parts.push(this.name);
+		if (this.alias) {
+			return Alias.make(parts.join("."), this.alias).sql();
+		}
+		return parts.join(".");
+	}
+}
+
 export class Case implements Sql {
 	field?: SqlElement;
 	alt?: SqlElement;
@@ -24,7 +56,7 @@ export class Case implements Sql {
 		return this;
 	}
 
-	alt(stmt: SqlElement): Case {
+	alternative(stmt: SqlElement): Case {
 		return this;
 	}
 
@@ -34,11 +66,11 @@ export class Case implements Sql {
 }
 
 export enum SqlType {
-	Int,
-	Decimal,
-	Char,
-	Varchar,
-	Date,
+	Int = 0,
+	Decimal = 1,
+	Char = 2,
+	Varchar = 3,
+	Date = 4,
 }
 
 export class Cast implements Sql {
