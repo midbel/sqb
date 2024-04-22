@@ -1,0 +1,1 @@
+# SQB: a damned simple SQL query builder

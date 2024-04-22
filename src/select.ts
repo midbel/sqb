@@ -122,6 +122,36 @@ export class Select implements Sql {
 		return this;
 	}
 
+	eq(field: SqlElement, value?: SqlElement): Select {
+		this.wheres.push(Binary.eq(field, value));
+		return this;
+	}
+
+	ne(field: SqlElement, value?: SqlElement): Select {
+		this.wheres.push(Binary.ne(field, value));
+		return this;
+	}
+
+	lt(field: SqlElement, value?: SqlElement): Select {
+		this.wheres.push(Binary.lt(field, value));
+		return this;
+	}
+
+	le(field: SqlElement, value?: SqlElement): Select {
+		this.wheres.push(Binary.le(field, value));
+		return this;
+	}
+
+	gt(field: SqlElement, value?: SqlElement): Select {
+		this.wheres.push(Binary.gt(field, value));
+		return this;
+	}
+
+	ge(field: SqlElement, value?: SqlElement): Select {
+		this.wheres.push(Binary.ge(field, value));
+		return this;
+	}
+
 	having(field: SqlElement | Array<SqlElement>): Select {
 		const fs = Array.isArray(field) ? field : [field];
 		this.havings = this.havings.concat(
