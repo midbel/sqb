@@ -1,5 +1,6 @@
 import { Select } from "./select";
 import { Expr } from "./literal";
+import { Relation } from "./predicate";
 import { toStr } from "./helpers";
 
 export interface Sql {
@@ -200,7 +201,7 @@ export class WrappedSql implements Sql {
 }
 
 export function wrap(q: SqlElement): SqlElement {
-	if (q instanceof Select || q instanceof Expr) {
+	if (q instanceof Select || q instanceof Expr || q instanceof Relation) {
 		return new WrappedSql(q);
 	}
 	return q;

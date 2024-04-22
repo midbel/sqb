@@ -1,7 +1,7 @@
 import { describe, expect, test, beforeEach } from "vitest";
 import { Alias, Column, Table } from "../src/commons";
 import { Literal } from "../src/literal";
-import { Binary, Exists, Between, In, Is } from "../src/predicate";
+import { Binary, Exists, Between, In, Is, Relation } from "../src/predicate";
 import { Join, Order, Select, Sets } from "../src/select";
 import { Exec } from "../src/exec";
 
@@ -130,6 +130,19 @@ describe("select", () => {
 		expect(q1.sql()).toBe("select * from table where field is null")
 		let q2 = Select.from("table").where(Is.not('field'))
 		expect(q2.sql()).toBe("select * from table where field is not null")
+	})
+
+	test("select with predicate: and/or", () => {
+		let and1 = Relation.and([
+			Binary.eq("field1", Literal.numeric(0)), 
+			Binary.eq("field2", Literal.str('foo'))
+		])
+		let and2 = Relation.and([
+			Binary.eq("field1", Literal.numeric(0)), 
+			Binary.eq("field2", Literal.str('bar'))
+		])
+		let q = Select.from("table").where(Relation.or([and1, and2]))
+		expect(q.sql()).toBe("select * from table where (field1=0 and field2='foo') or (field1=0 and field2='bar')")
 	})
 
 	test("select exists", () => {

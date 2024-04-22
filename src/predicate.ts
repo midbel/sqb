@@ -216,11 +216,6 @@ export class Relation implements Sql {
 	}
 
 	sql(): string {
-		return this.args
-			.map((a) => {
-				return a instanceof Relation ? wrap(a) : a;
-			})
-			.map(toStr)
-			.join(` ${this.op} `);
+		return this.args.map(wrap).map(toStr).join(` ${this.op} `);
 	}
 }

@@ -2,7 +2,7 @@
 
 Write simple and easy Javascript code to generate your SQL queries from the simplest to what fits best your needs but without having to mix (too much) SQL with your js code.
 
-## install
+## Install
 
 ```bash
 npm install -D @midbel/sqb
