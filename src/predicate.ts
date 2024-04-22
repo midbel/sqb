@@ -49,11 +49,11 @@ export class Binary implements Sql {
 		return new Binary(SqlCmpOp.Gt, field, value);
 	}
 
-	static ge(field: SqlElement, value: SqlElement): Sql {
+	static ge(field: SqlElement, value?: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Ge, field, value);
 	}
 
-	static like(field: SqlElement, value: SqlElement): Sql {
+	static like(field: SqlElement, value?: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Like, field, value);
 	}
 
