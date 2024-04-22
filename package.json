@@ -1,5 +1,5 @@
 {
-  "name": "squiz",
+  "name": "@midbel/sqb",
   "version": "0.1.0",
   "description": "a damned simple SQL query builder",
   "type": "module",

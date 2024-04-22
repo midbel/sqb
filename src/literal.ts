@@ -94,16 +94,12 @@ export class Literal implements Sql {
 			return `'${this.value.replaceAll("'", "''")}'`;
 		}
 		if (this.value instanceof Date) {
-			return `${this.value.getFullYear()}-${
-				this.value.getMonth() + 1
-			}-${this.value.getDate()}`;
+			const month = (this.value.getMonth() + 1).toString().padStart(2, "0");
+			const day = this.value.getDate().toString().padStart(2, "0");
+			return `'${this.value.getFullYear()}-${month}-${day}'`;
 		}
 		return this.value.toString();
 	}
-}
-
-export function literal(value: string | number | boolean | Date): Sql {
-	return new Literal(value);
 }
 
 export function placeholder(): string {

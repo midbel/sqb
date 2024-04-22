@@ -98,14 +98,98 @@ export class Between implements Sql {
 		this.not = not;
 	}
 
+	negate(): Sql {
+		this.not = !this.not;
+		return this;
+	}
+
 	sql(): string {
 		return [
 			toStr(this.field),
 			this.not ? "not" : "",
 			"between",
 			toStr(this.left),
+			"and",
 			toStr(this.right),
-		].join(" ");
+		]
+			.filter((i: string) => i)
+			.join(" ");
+	}
+}
+
+export class In implements Sql {
+	static contains(field: SqlElement, values: Array<SqlElement>): Sql {
+		return new In(field, values);
+	}
+
+	static not(field: SqlElement, values: Array<SqlElement>): Sql {
+		return new In(field, values, true);
+	}
+
+	field: SqlElement;
+	values: Array<SqlElement>;
+	not: boolean;
+
+	constructor(field: SqlElement, values: Array<SqlElement>, not = false) {
+		this.field = field;
+		this.not = not;
+		this.values = values;
+	}
+
+	sql(): string {
+		const values = this.values.map(toStr);
+		const parts = [
+			toStr(this.field),
+			this.not ? "not" : "",
+			"in",
+			`(${values.join(", ")})`,
+		];
+		return parts.filter((i: string) => i).join(" ");
+	}
+}
+
+export class Is implements Sql {
+	static is(field: SqlElement): Sql {
+		return new Is(field);
+	}
+
+	static not(field: SqlElement): Sql {
+		const i = new Is(field);
+		return i.negate();
+	}
+
+	not: boolean;
+	field: SqlElement;
+
+	constructor(field: SqlElement) {
+		this.field = field;
+		this.not = false;
+	}
+
+	negate(): Sql {
+		this.not = !this.not;
+		return this;
+	}
+
+	sql(): string {
+		const parts = [toStr(this.field), "is", this.not ? "not" : "", "null"];
+		return parts.filter((i: string) => i).join(" ");
+	}
+}
+
+export class Exists implements Sql {
+	static exists(query: Sql): Sql {
+		return new Exists(query);
+	}
+
+	query: Sql;
+
+	constructor(query: Sql) {
+		this.query = query;
+	}
+
+	sql(): string {
+		return `exists (${this.query.sql()})`;
 	}
 }
 

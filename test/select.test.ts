@@ -1,7 +1,7 @@
 import { describe, expect, test, beforeEach } from "vitest";
 import { Alias, Column, Table } from "../src/commons";
 import { Literal } from "../src/literal";
-import { Binary } from "../src/predicate";
+import { Binary, Exists, Between, In, Is } from "../src/predicate";
 import { Join, Order, Select, Sets } from "../src/select";
 import { Exec } from "../src/exec";
 
@@ -99,12 +99,44 @@ describe("select", () => {
 		expect(q.sql()).toBe("select field, 'string', 0, true from table");
 	});
 
-	test("select with predicates", () => {
+	test("select with predicate", () => {
 		const q = Select.from("table")
 			.where(Binary.eq("field", Literal.numeric(0)))
 			.where(Binary.ne("field"));
 		expect(q.sql()).toBe("select * from table where field=0 and field<>?");
 	});
+
+	test("select with predicte: between", () => {
+		const n = new Date(Date.parse('2024-04-22'))
+		const y = new Date(n - (86400 * 1000))
+
+		let q1 = Select.from("table").where(Between.not("field", Literal.date(y), Literal.date(n)))
+		expect(q1.sql()).toBe("select * from table where field not between '2024-04-21' and '2024-04-22'")
+
+		let q2 = Select.from("table").where(Between.between("field", Literal.date(y), Literal.date(n)))
+		expect(q2.sql()).toBe("select * from table where field between '2024-04-21' and '2024-04-22'")
+	})
+
+	test("select with predicte: in", () => {
+		let q1 = Select.from("table").where(In.contains("field", [Literal.numeric(10), Literal.numeric(100)]))
+		expect(q1.sql()).toBe("select * from table where field in (10, 100)")
+
+		let q2 = Select.from("table").where(In.not("field", [Literal.numeric(10), Literal.numeric(100)]))
+		expect(q2.sql()).toBe("select * from table where field not in (10, 100)")
+	})
+
+	test("select with predicate: is", () => {
+		let q1 = Select.from("table").where(Is.is('field'))
+		expect(q1.sql()).toBe("select * from table where field is null")
+		let q2 = Select.from("table").where(Is.not('field'))
+		expect(q2.sql()).toBe("select * from table where field is not null")
+	})
+
+	test("select exists", () => {
+		const e = Select.from("table").where(Binary.lt("id", Literal.numeric(150)))
+		let q = Select.from("table").where(Exists.exists(e))
+		expect(q.sql()).toBe("select * from table where exists (select * from table where id<150)")
+	})
 
 	test("select with order", () => {
 		const q = Select.from("table")

@@ -9,27 +9,27 @@ export enum SqlSetOp {
 }
 
 export class Sets implements Sql {
-	static union(q1: Select | Set, q2: Select | Set, all = false): Sql {
+	static union(q1: Select | Sets, q2: Select | Sets, all = false): Sql {
 		return new Sets(SqlSetOp.Union, q1, q2, all);
 	}
 
-	static intersect(q1: Select | Set, q2: Select | Set, all = false): Sql {
+	static intersect(q1: Select | Sets, q2: Select | Sets, all = false): Sql {
 		return new Sets(SqlSetOp.Intersect, q1, q2, all);
 	}
 
-	static except(q1: Select | Set, q2: Select | Set, all = false): Sql {
+	static except(q1: Select | Sets, q2: Select | Sets, all = false): Sql {
 		return new Sets(SqlSetOp.Except, q1, q2, all);
 	}
 
 	type: SqlSetOp;
-	left: Select | Set;
-	right: Select | Set;
+	left: Select | Sets;
+	right: Select | Sets;
 	all: boolean;
 
 	constructor(
 		type: SqlSetOp,
-		q1: Select | Set,
-		q2: Select | Set,
+		q1: Select | Sets,
+		q2: Select | Sets,
 		all: boolean,
 	) {
 		this.type = type;
