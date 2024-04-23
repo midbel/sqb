@@ -43,7 +43,7 @@ export class Sets implements Sql {
 	}
 
 	sql(): string {
-		if (this.left.length != this.right.length) {
+		if (this.left.length !== this.right.length) {
 			throw new Error(
 				`${this.type}: number of fields mismatched between queries`,
 			);
@@ -60,16 +60,25 @@ export class Cte implements Sql {
 	}
 
 	name: string;
-	query: Select;
+	query: Select | Sets;
 	fields?: Array<SqlElement>;
 
-	constructor(name: string, query: Select, fields?: Array<SqlElement>) {
+	constructor(name: string, query: Select | Sets, fields?: Array<SqlElement>) {
 		this.name = name;
 		this.query = query;
 		this.fields = fields;
 	}
 
 	sql(): string {
+		if (
+			this.fields?.length &&
+			this.fields.length > 0 &&
+			this.query.length !== this.fields.length
+		) {
+			throw new Error(
+				`cte(${this.name}): number of fields mismatched fields in the query`,
+			);
+		}
 		const parts: Array<string> = [this.name];
 		if (this.fields?.length) {
 			const fields = this.fields.map(toStr);

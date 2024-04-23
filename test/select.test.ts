@@ -55,6 +55,14 @@ describe("select", () => {
 		expect(q.sql()).toBe("with cte(test0, test1) as (select field0, field1 from table) select * from cte")
 	})
 
+	test("select with cte invalid length", () => {
+		const c = Select.from("table").column(["field0", "field1"])
+		const e = Cte.make("cte", c, ["test0"])
+		const q = Select.from("cte").with(e)
+
+		expect(() => q.sql()).toThrow("cte(cte): number of fields mismatched fields in the query")
+	})
+
 	test("select with functions", () => {
 		const q = Select.from("table").column(Exec.count([Column.all()]));
 		expect(q.sql()).toBe("select count(*) from table");
