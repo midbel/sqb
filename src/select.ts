@@ -1,4 +1,4 @@
-import { type Sql, type SqlElement, isSql, wrap } from "./commons";
+import { type Sql, type SqlElement, isSql, wrap, Order } from "./commons";
 import { Binary } from "./predicate";
 import { toStr } from "./helpers";
 
@@ -42,28 +42,6 @@ export class Sets implements Sql {
 		return [this.left.sql(), this.type, this.all ? "all" : "", this.right.sql()]
 			.filter((s: string) => s)
 			.join(" ");
-	}
-}
-
-export class Order implements Sql {
-	static asc(field: SqlElement): Sql {
-		return new Order(field, "asc");
-	}
-
-	static desc(field: SqlElement): Sql {
-		return new Order(field, "desc");
-	}
-
-	field: SqlElement;
-	dir: string;
-
-	constructor(field: SqlElement, dir = "") {
-		this.field = field;
-		this.dir = dir ? dir : "asc";
-	}
-
-	sql(): string {
-		return `${toStr(this.field)} ${this.dir}`;
 	}
 }
 
@@ -122,6 +100,14 @@ export class Select implements Sql {
 		this.orders = [];
 		this.wheres = [];
 		this.ctes = [];
+	}
+
+	get length(): number {
+		return this.fields.length;
+	}
+
+	cte(name: string): Sql {
+		return Cte.make(name, this);
 	}
 
 	with(cte: Sql): Select {

@@ -13,6 +13,33 @@ export function isSql(str: SqlElement): str is Sql {
 	return (str as Sql).sql !== undefined;
 }
 
+export enum SqlOrderDir {
+	Asc = "asc",
+	Desc = "desc",
+}
+
+export class Order implements Sql {
+	static asc(field: SqlElement): Sql {
+		return new Order(field, SqlOrderDir.Asc);
+	}
+
+	static desc(field: SqlElement): Sql {
+		return new Order(field, SqlOrderDir.Desc);
+	}
+
+	field: SqlElement;
+	dir: SqlOrderDir;
+
+	constructor(field: SqlElement, dir: SqlOrderDir = SqlOrderDir.Asc) {
+		this.field = field;
+		this.dir = dir;
+	}
+
+	sql(): string {
+		return `${toStr(this.field)} ${this.dir}`;
+	}
+}
+
 export class Table implements Sql {
 	name: string;
 	schema: string;
