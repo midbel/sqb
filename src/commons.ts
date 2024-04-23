@@ -50,9 +50,9 @@ export class Table implements Sql {
 	}
 
 	constructor(name: string, schema: string, alias?: string) {
-		this.name = name;
-		this.schema = schema;
-		this.alias = alias;
+		this.name = isValidIdentifier(name);
+		this.schema = schema ? isValidIdentifier(schema) : schema;
+		this.alias = alias ? isValidIdentifier(alias) : alias;
 	}
 
 	column(name: string, alias?: string): Sql {
@@ -177,7 +177,7 @@ export class Alias implements Sql {
 
 	constructor(name: SqlElement, alias: string) {
 		this.name = wrap(name);
-		this.alias = alias;
+		this.alias = isValidIdentifier(alias);
 	}
 
 	sql(): string {
@@ -205,9 +205,9 @@ export class Column implements Sql {
 	schema: string;
 
 	constructor(name: string, table: string, schema: string) {
-		this.name = name;
-		this.table = table;
-		this.schema = schema;
+		this.name = isValidIdentifier(name);
+		this.table = table ? isValidIdentifier(table) : table;
+		this.schema = schema ? isValidIdentifier(schema) : schema;
 	}
 
 	sql(): string {
@@ -234,10 +234,13 @@ export function wrap(q: SqlElement): SqlElement {
 	return q;
 }
 
-export function isValidIdentifier(ident: string): boolean {
+export function isValidIdentifier(ident: string): string {
+	if (ident === "*") {
+		return ident;
+	}
 	const re = /[a-zA-Z][a-zA-Z0-9_]*/;
 	if (!re.test(ident)) {
-		throw new Error(`${ident}: invalid identifier`);
+		throw new Error(`${ident}: invalid SQL identifier`);
 	}
-	return true;
+	return ident;
 }

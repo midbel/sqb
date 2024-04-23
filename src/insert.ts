@@ -69,7 +69,7 @@ export class Insert implements Sql {
 		if (this.values.length) {
 			values = this.values.map(toStr);
 		} else {
-			values = this.columns.map((_) => placeholder());
+			values = this.columns.map(() => placeholder());
 		}
 		return `insert into ${toStr(this.table)} (${columns.join(
 			", ",
