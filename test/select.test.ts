@@ -5,6 +5,24 @@ import { Binary, Exists, Between, In, Is, Relation } from "../src/predicate";
 import { Cte, Join, Select, Sets } from "../src/select";
 import { Exec } from "../src/exec";
 
+
+describe("sets", () => {
+	test("union", () => {
+		const q1 = Select.from("table1").column("field")
+		const q2 = Select.from("table2").column("field")
+		const q = Sets.union(q1, q2)
+		expect(q.sql()).toBe("select field from table1 union select field from table2")
+	})
+
+	test("intersect invalid length", () => {
+		const q1 = Select.from("table1").column(["field0", "field1"])
+		const q2 = Select.from("table2").column(["field0"])
+		const q = Sets.intersect(q1, q2)
+
+		expect(() => q.sql()).toThrow("intersect")
+	})
+})
+
 describe("select", () => {
 	beforeEach(() => Alias.withAs = true)
 
@@ -165,11 +183,4 @@ describe("select", () => {
 			.order(Order.asc(Column.make("other", "t")));
 		expect(q.sql()).toBe("select * from table order by field asc, t.other asc");
 	});
-
-	test("union all", () => {
-		const q1 = Select.from("table1").column("field")
-		const q2 = Select.from("table2").column("field")
-		const q = Sets.union(q1, q2)
-		expect(q.sql()).toBe("select field from table1 union select field from table2")
-	})
 });

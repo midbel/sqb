@@ -38,7 +38,16 @@ export class Sets implements Sql {
 		this.all = all;
 	}
 
+	get length(): number {
+		return this.left.length;
+	}
+
 	sql(): string {
+		if (this.left.length != this.right.length) {
+			throw new Error(
+				`${this.type}: number of fields mismatched between queries`,
+			);
+		}
 		return [this.left.sql(), this.type, this.all ? "all" : "", this.right.sql()]
 			.filter((s: string) => s)
 			.join(" ");
