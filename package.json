@@ -20,7 +20,7 @@
   "author": "midbel",
   "repository": {
     "type": "git",
-    "url": "https://github.com/midbel/sqb.git"
+    "url": "git+https://github.com/midbel/sqb.git"
   },
   "license": "MIT",
   "devDependencies": {

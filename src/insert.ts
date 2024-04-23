@@ -44,6 +44,9 @@ export class Insert implements Sql {
 	}
 
 	sql(): string {
+		if (this.columns.length === 0 && this.values.length === 0 && !this.query) {
+			throw new Error("insert: missing values/query");
+		}
 		if (this.query) {
 			return this.insertQuery();
 		}

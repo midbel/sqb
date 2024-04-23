@@ -67,6 +67,34 @@ export class Order implements Sql {
 	}
 }
 
+export class Cte implements Sql {
+	static make(name: string, query: Select, fields?: Array<SqlElement>): Sql {
+		return new Cte(name, query, fields);
+	}
+
+	name: string;
+	query: Select;
+	fields?: Array<SqlElement>;
+
+	constructor(name: string, query: Select, fields?: Array<SqlElement>) {
+		this.name = name;
+		this.query = query;
+		this.fields = fields;
+	}
+
+	sql(): string {
+		const parts: Array<string> = [this.name];
+		if (this.fields?.length) {
+			const fields = this.fields.map(toStr);
+			const list = `(${fields.join(", ")})`;
+			parts[0] = `${parts[0]}${list}`;
+		}
+		parts.push("as");
+		parts.push(`(${this.query.sql()})`);
+		return parts.join(" ");
+	}
+}
+
 export class Select implements Sql {
 	static from(table: SqlElement): Select {
 		return new Select(table);
@@ -74,8 +102,9 @@ export class Select implements Sql {
 
 	table: SqlElement;
 	uniq: boolean;
-	limit?: SqlElement;
-	offset?: SqlElement;
+	count?: SqlElement;
+	at?: SqlElement;
+	ctes: Array<Sql>;
 	fields: Array<SqlElement>;
 	joins: Array<SqlElement>;
 	wheres: Array<SqlElement>;
@@ -92,6 +121,12 @@ export class Select implements Sql {
 		this.havings = [];
 		this.orders = [];
 		this.wheres = [];
+		this.ctes = [];
+	}
+
+	with(cte: Sql): Select {
+		this.ctes.push(cte);
+		return this;
 	}
 
 	join(table: string | Join): Select {
@@ -172,23 +207,28 @@ export class Select implements Sql {
 		return this;
 	}
 
-	at(offset: SqlElement): Select {
-		this.offset = offset;
+	offset(at: SqlElement): Select {
+		this.at = at;
 		return this;
 	}
 
-	count(limit: SqlElement): Select {
-		this.limit = limit;
+	limit(count: SqlElement): Select {
+		this.count = count;
 		return this;
 	}
 
 	sql(): string {
+		const query: Array<string> = [];
+		if (this.ctes.length) {
+			query.push("with");
+			query.push(this.ctes.map(toStr).join(", "));
+		}
+		query.push("select");
 		if (!this.fields.length) {
 			this.fields.push("*");
 		}
 		const fields = this.fields.map(toStr);
 
-		const query: Array<string> = ["select"];
 		if (this.uniq) {
 			query.push("distinct");
 		}
@@ -219,14 +259,14 @@ export class Select implements Sql {
 			query.push(orders.join(", "));
 		}
 
-		if (this.limit) {
+		if (this.count) {
 			query.push("limit");
-			query.push(toStr(this.limit));
+			query.push(toStr(this.count));
 		}
 
-		if (this.offset) {
+		if (this.at) {
 			query.push("offset");
-			query.push(toStr(this.offset));
+			query.push(toStr(this.at));
 		}
 
 		return query.join(" ");

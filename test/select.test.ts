@@ -2,7 +2,7 @@ import { describe, expect, test, beforeEach } from "vitest";
 import { Alias, Column, Table } from "../src/commons";
 import { Literal } from "../src/literal";
 import { Binary, Exists, Between, In, Is, Relation } from "../src/predicate";
-import { Join, Order, Select, Sets } from "../src/select";
+import { Cte, Join, Order, Select, Sets } from "../src/select";
 import { Exec } from "../src/exec";
 
 describe("select", () => {
@@ -29,6 +29,14 @@ describe("select", () => {
 		expect(q.sql()).toBe("select field1, field2 from table");
 	});
 
+	test("select with cte", () => {
+		const c = Select.from("table").column(["field0", "field1"])
+		const e = Cte.make("cte", c, ["test0", "test1"])
+		const q = Select.from("cte").with(e)
+
+		expect(q.sql()).toBe("with cte(test0, test1) as (select field0, field1 from table) select * from cte")
+	})
+
 	test("select with functions", () => {
 		const q = Select.from("table").column(Exec.count([Column.all()]));
 		expect(q.sql()).toBe("select count(*) from table");
@@ -40,7 +48,7 @@ describe("select", () => {
 	});
 
 	test("select with limit and offset", () => {
-		const q = Select.from("table").count(Literal.numeric(100)).at(Literal.numeric(150));
+		const q = Select.from("table").limit(Literal.numeric(100)).offset(Literal.numeric(150));
 		expect(q.sql()).toBe("select * from table limit 100 offset 150");
 	});
 
