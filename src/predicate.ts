@@ -2,6 +2,18 @@ import { type Sql, type SqlElement, isSql, wrap } from "./commons";
 import { placeholder } from "./literal";
 import { toStr } from "./helpers";
 
+export class Where implements Sql {
+	list: Array<SqlElement>;
+
+	constructor() {
+		this.list = [];
+	}
+
+	sql(): string {
+		return "";
+	}
+}
+
 export class Not implements Sql {
 	not(q: SqlElement): Sql {
 		return new Not(q);

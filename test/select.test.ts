@@ -1,8 +1,8 @@
 import { describe, expect, test, beforeEach } from "vitest";
-import { Alias, Column, Table, Order } from "../src/commons";
+import { Alias, Column, Table, Order, Cte } from "../src/commons";
 import { Literal } from "../src/literal";
 import { Binary, Exists, Between, In, Is, Relation } from "../src/predicate";
-import { Cte, Join, Select, Sets } from "../src/select";
+import { Join, Select, Sets } from "../src/select";
 import { Exec } from "../src/exec";
 
 

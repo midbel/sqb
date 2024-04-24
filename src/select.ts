@@ -1,4 +1,4 @@
-import { type Sql, type SqlElement, isSql, wrap, Order } from "./commons";
+import { type Sql, type SqlElement, isSql, wrap, Order, Cte } from "./commons";
 import { Binary } from "./predicate";
 import { toStr } from "./helpers";
 
@@ -51,43 +51,6 @@ export class Sets implements Sql {
 		return [this.left.sql(), this.type, this.all ? "all" : "", this.right.sql()]
 			.filter((s: string) => s)
 			.join(" ");
-	}
-}
-
-export class Cte implements Sql {
-	static make(name: string, query: Select, fields?: Array<SqlElement>): Sql {
-		return new Cte(name, query, fields);
-	}
-
-	name: string;
-	query: Select | Sets;
-	fields?: Array<SqlElement>;
-
-	constructor(name: string, query: Select | Sets, fields?: Array<SqlElement>) {
-		this.name = name;
-		this.query = query;
-		this.fields = fields;
-	}
-
-	sql(): string {
-		if (
-			this.fields?.length &&
-			this.fields.length > 0 &&
-			this.query.length !== this.fields.length
-		) {
-			throw new Error(
-				`cte(${this.name}): number of fields mismatched fields in the query`,
-			);
-		}
-		const parts: Array<string> = [this.name];
-		if (this.fields?.length) {
-			const fields = this.fields.map(toStr);
-			const list = `(${fields.join(", ")})`;
-			parts[0] = `${parts[0]}${list}`;
-		}
-		parts.push("as");
-		parts.push(`(${this.query.sql()})`);
-		return parts.join(" ");
 	}
 }
 

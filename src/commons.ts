@@ -13,6 +13,62 @@ export function isSql(str: SqlElement): str is Sql {
 	return (str as Sql).sql !== undefined;
 }
 
+export class Cte implements Sql {
+	static make(name: string, query: Select, fields?: Array<SqlElement>): Sql {
+		return new Cte(name, query, fields);
+	}
+
+	name: string;
+	query: Select;
+	fields?: Array<SqlElement>;
+
+	constructor(name: string, query: Select, fields?: Array<SqlElement>) {
+		this.name = name;
+		this.query = query;
+		this.fields = fields;
+	}
+
+	sql(): string {
+		if (
+			this.fields?.length &&
+			this.fields.length > 0 &&
+			this.query.length !== this.fields.length
+		) {
+			throw new Error(
+				`cte(${this.name}): number of fields mismatched fields in the query`,
+			);
+		}
+		const parts: Array<string> = [this.name];
+		if (this.fields?.length) {
+			const fields = this.fields.map(toStr);
+			const list = `(${fields.join(", ")})`;
+			parts[0] = `${parts[0]}${list}`;
+		}
+		parts.push("as");
+		parts.push(`(${this.query.sql()})`);
+		return parts.join(" ");
+	}
+}
+
+class With implements Sql {
+	list: Array<SqlElement>;
+
+	constructor() {
+		this.list = [];
+	}
+
+	define(name: string, query: Select, fields?: Array<SqlElement>): With {
+		const c = Cte.make(name, query, fields);
+		this.list.push(c);
+		return this;
+	}
+
+	sql(): string {
+		const parts = this.list.map(toStr);
+		return ["with"].concat(parts).join(", ");
+	}
+}
+
 export enum SqlOrderDir {
 	Asc = "asc",
 	Desc = "desc",
