@@ -1,6 +1,17 @@
 import type { Sql, SqlElement } from "./commons";
 import { toStr } from "./helpers";
 
+const scalars = new Set([
+	"length",
+	"mod",
+	"substr",
+	"coalesce",
+	"ifnull",
+	"isnull",
+]);
+const windows = new Set(["row_number"]);
+const aggregates = new Set(["min", "max", "avg", "count", "sum"]);
+
 export class Exec implements Sql {
 	static sum(args: Array<SqlElement>): Sql {
 		if (args.length !== 1) {
@@ -90,5 +101,17 @@ export class Exec implements Sql {
 	sql(): string {
 		const args = this.args.map(toStr);
 		return `${this.fn}(${args.join(", ")})`;
+	}
+
+	isScalar(): boolean {
+		return scalars.has(this.fn);
+	}
+
+	isAggregate(): boolean {
+		return aggregates.has(this.fn);
+	}
+
+	isWindow(): boolean {
+		return windows.has(this.fn);
 	}
 }
