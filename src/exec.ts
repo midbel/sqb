@@ -12,7 +12,13 @@ const scalars = new Set([
 const windows = new Set(["row_number"]);
 const aggregates = new Set(["min", "max", "avg", "count", "sum"]);
 
-export class Exec implements Sql {
+export interface Function extends Sql {
+	isWindow(): boolean;
+	isAggregate(): boolean;
+	isScalar(): boolean;
+}
+
+export class Exec implements Function {
 	static sum(args: Array<SqlElement>): Sql {
 		if (args.length !== 1) {
 			throw new Error("sum: expected 1 argument");
