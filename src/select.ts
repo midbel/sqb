@@ -7,8 +7,9 @@ import {
 	With,
 	Cte,
 } from "./commons";
-import { Binary } from "./predicate";
+import { Filter } from "./predicate";
 import { toStr } from "./helpers";
+import { placeholder } from "./literal";
 
 export enum SqlSetOp {
 	Union = "union",
@@ -74,9 +75,9 @@ export class Select implements Sql {
 	sub: With;
 	fields: Array<SqlElement>;
 	joins: Array<SqlElement>;
-	wheres: Array<SqlElement>;
+	_where: Filter;
 	groups: Array<SqlElement>;
-	havings: Array<SqlElement>;
+	_having: Filter;
 	orders: Array<SqlElement>;
 
 	constructor(table: SqlElement) {
@@ -84,10 +85,10 @@ export class Select implements Sql {
 		this.uniq = false;
 		this.joins = [];
 		this.fields = [];
+		this._where = Filter.where();
 		this.groups = [];
-		this.havings = [];
+		this._having = Filter.having();
 		this.orders = [];
-		this.wheres = [];
 		this.sub = new With();
 	}
 
@@ -125,48 +126,42 @@ export class Select implements Sql {
 	}
 
 	where(field: SqlElement | Array<SqlElement>): Select {
-		const fs = Array.isArray(field) ? field : [field];
-		this.wheres = this.wheres.concat(
-			fs.map((f) => (isSql(f) ? f : Binary.eq(f))),
-		);
+		this._where.add(field);
 		return this;
 	}
 
 	eq(field: SqlElement, value?: SqlElement): Select {
-		this.wheres.push(Binary.eq(field, value));
+		this._where.eq(field, value);
 		return this;
 	}
 
 	ne(field: SqlElement, value?: SqlElement): Select {
-		this.wheres.push(Binary.ne(field, value));
+		this._where.ne(field, value);
 		return this;
 	}
 
 	lt(field: SqlElement, value?: SqlElement): Select {
-		this.wheres.push(Binary.lt(field, value));
+		this._where.lt(field, value);
 		return this;
 	}
 
 	le(field: SqlElement, value?: SqlElement): Select {
-		this.wheres.push(Binary.le(field, value));
+		this._where.le(field, value);
 		return this;
 	}
 
 	gt(field: SqlElement, value?: SqlElement): Select {
-		this.wheres.push(Binary.gt(field, value));
+		this._where.gt(field, value);
 		return this;
 	}
 
 	ge(field: SqlElement, value?: SqlElement): Select {
-		this.wheres.push(Binary.ge(field, value));
+		this._where.ge(field, value);
 		return this;
 	}
 
 	having(field: SqlElement | Array<SqlElement>): Select {
-		const fs = Array.isArray(field) ? field : [field];
-		this.havings = this.havings.concat(
-			fs.map((f) => (isSql(f) ? f : Binary.eq(f))),
-		);
+		this._having.add(field);
 		return this;
 	}
 
@@ -201,12 +196,10 @@ export class Select implements Sql {
 		if (!this.fields.length) {
 			this.fields.push("*");
 		}
-		const fields = this.fields.map(toStr);
-
 		if (this.uniq) {
 			query.push("distinct");
 		}
-		query.push(fields.join(", "));
+		query.push(this.fields.map(toStr).join(", "));
 		query.push("from");
 		query.push(toStr(this.table));
 
@@ -215,16 +208,21 @@ export class Select implements Sql {
 			query.push(joins.join(" "));
 		}
 
-		if (this.wheres.length) {
-			const wheres = this.wheres.map(toStr);
-			query.push("where");
-			query.push(wheres.join(" and "));
+		if (this._where.count) {
+			query.push(this._where.sql());
 		}
 
 		if (this.groups.length) {
 			const groups = this.groups.map(toStr);
 			query.push("group by");
 			query.push(groups.join(", "));
+		}
+
+		if (this._having.count) {
+			if (!this.groups.length) {
+				throw new Error("select: having used with group by claused");
+			}
+			query.push(this._having.sql());
 		}
 
 		if (this.orders.length) {

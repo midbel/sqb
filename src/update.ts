@@ -1,6 +1,7 @@
 import { type Sql, type SqlElement, isSql, With } from "./commons";
-import { Binary } from "./predicate";
+import { Filter } from "./predicate";
 import { toStr } from "./helpers";
+import { placeholder } from "./literal";
 
 export class Update implements Sql {
 	static update(table: SqlElement): Update {
@@ -10,14 +11,14 @@ export class Update implements Sql {
 	table: SqlElement;
 	columns: Array<SqlElement>;
 	values: Array<SqlElement>;
-	wheres: Array<SqlElement>;
+	_where: Filter;
 	sub: With;
 
 	constructor(table: SqlElement) {
 		this.table = table;
 		this.columns = [];
 		this.values = [];
-		this.wheres = [];
+		this._where = Filter.where();
 		this.sub = new With();
 	}
 
@@ -33,10 +34,7 @@ export class Update implements Sql {
 	}
 
 	where(field: SqlElement | Array<SqlElement>): Update {
-		const fs = Array.isArray(field) ? field : [field];
-		this.wheres = this.wheres.concat(
-			fs.map((f) => (isSql(f) ? f : Binary.eq(f))),
-		);
+		this._where.add(field);
 		return this;
 	}
 
@@ -58,10 +56,8 @@ export class Update implements Sql {
 			},
 		);
 		query.push(fields.join(", "));
-		if (this.wheres.length) {
-			const wheres = this.wheres.map(toStr);
-			query.push("where");
-			query.push(wheres.join(" and "));
+		if (this._where.count) {
+			query.push(this._where.sql());
 		}
 		return query.join(" ");
 	}

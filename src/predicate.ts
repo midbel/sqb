@@ -2,33 +2,104 @@ import { type Sql, type SqlElement, isSql, wrap } from "./commons";
 import { placeholder } from "./literal";
 import { toStr } from "./helpers";
 
-export class Where implements Sql {
+enum SqlFilterType {
+	Where = "where",
+	Having = "having",
+}
+
+export class Filter implements Sql {
+	static where(): Filter {
+		return new Filter(SqlFilterType.Where);
+	}
+
+	static having(): Filter {
+		return new Filter(SqlFilterType.Having);
+	}
+
 	list: Array<SqlElement>;
+	type: SqlFilterType;
 
-	constructor() {
+	constructor(type: SqlFilterType) {
 		this.list = [];
+		this.type = type;
+	}
+
+	get count(): number {
+		return this.list.length;
+	}
+
+	add(w: SqlElement | SqlElement[]): Filter {
+		const ws = Array.isArray(w) ? w : [w];
+		this.list = this.list.concat(ws);
+		return this;
+	}
+
+	eq(field: SqlElement, value?: SqlElement): Filter {
+		this.list.push(Binary.eq(field, value || placeholder()));
+		return this;
+	}
+
+	ne(field: SqlElement, value?: SqlElement): Filter {
+		this.list.push(Binary.ne(field, value || placeholder()));
+		return this;
+	}
+
+	lt(field: SqlElement, value?: SqlElement): Filter {
+		this.list.push(Binary.lt(field, value || placeholder()));
+		return this;
+	}
+
+	le(field: SqlElement, value?: SqlElement): Filter {
+		this.list.push(Binary.le(field, value || placeholder()));
+		return this;
+	}
+
+	gt(field: SqlElement, value?: SqlElement): Filter {
+		this.list.push(Binary.gt(field, value || placeholder()));
+		return this;
+	}
+
+	ge(field: SqlElement, value?: SqlElement): Filter {
+		this.list.push(Binary.ge(field, value || placeholder()));
+		return this;
+	}
+
+	like(field: SqlElement, value?: SqlElement): Filter {
+		this.list.push(Binary.like(field, value || placeholder()));
+		return this;
+	}
+
+	between(field: SqlElement, low: SqlElement, high: SqlElement): Filter {
+		this.list.push(Between.between(field, low, high));
+		return this;
+	}
+
+	isNull(field: SqlElement): Filter {
+		this.list.push(Is.is(field));
+		return this;
 	}
 
 	sql(): string {
-		return "";
+		const list = this.list.map(toStr);
+		return `${this.type} ${list.join(" and ")}`;
 	}
 }
 
-export class Not implements Sql {
-	not(q: SqlElement): Sql {
-		return new Not(q);
-	}
+// export class Not implements Sql {
+// 	static not(q: SqlElement): Sql {
+// 		return new Not(q);
+// 	}
 
-	query: SqlElement;
+// 	query: SqlElement;
 
-	constructor(q: SqlElement) {
-		this.query = q;
-	}
+// 	constructor(q: SqlElement) {
+// 		this.query = q;
+// 	}
 
-	sql(): string {
-		return `not ${toStr(this.query)}`;
-	}
-}
+// 	sql(): string {
+// 		return `not ${toStr(this.query)}`;
+// 	}
+// }
 
 export enum SqlCmpOp {
 	Eq = "=",
@@ -41,31 +112,31 @@ export enum SqlCmpOp {
 }
 
 export class Binary implements Sql {
-	static eq(field: SqlElement, value?: SqlElement): Sql {
+	static eq(field: SqlElement, value: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Eq, field, value);
 	}
 
-	static ne(field: SqlElement, value?: SqlElement): Sql {
+	static ne(field: SqlElement, value: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Ne, field, value);
 	}
 
-	static lt(field: SqlElement, value?: SqlElement): Sql {
+	static lt(field: SqlElement, value: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Lt, field, value);
 	}
 
-	static le(field: SqlElement, value?: SqlElement): Sql {
+	static le(field: SqlElement, value: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Le, field, value);
 	}
 
-	static gt(field: SqlElement, value?: SqlElement): Sql {
+	static gt(field: SqlElement, value: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Gt, field, value);
 	}
 
-	static ge(field: SqlElement, value?: SqlElement): Sql {
+	static ge(field: SqlElement, value: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Ge, field, value);
 	}
 
-	static like(field: SqlElement, value?: SqlElement): Sql {
+	static like(field: SqlElement, value: SqlElement): Sql {
 		return new Binary(SqlCmpOp.Like, field, value);
 	}
 
@@ -73,7 +144,7 @@ export class Binary implements Sql {
 	right: SqlElement;
 	op: SqlCmpOp;
 
-	constructor(op: SqlCmpOp, left: SqlElement, right?: SqlElement) {
+	constructor(op: SqlCmpOp, left: SqlElement, right: SqlElement) {
 		this.left = left;
 		this.right = right ? wrap(right) : placeholder();
 		this.op = op;

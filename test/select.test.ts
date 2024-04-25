@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeEach } from "vitest";
 import { Alias, Column, Table, Order, Cte } from "../src/commons";
-import { Literal } from "../src/literal";
+import { Literal, placeholder } from "../src/literal";
 import { Binary, Exists, Between, In, Is, Relation } from "../src/predicate";
 import { Join, Select, Sets } from "../src/select";
 import { Exec } from "../src/exec";
@@ -120,7 +120,7 @@ describe("select", () => {
 	test("select with predicate", () => {
 		const q = Select.from("table")
 			.where(Binary.eq("field", Literal.numeric(0)))
-			.where(Binary.ne("field"));
+			.where(Binary.ne("field", placeholder()));
 		expect(q.sql()).toBe("select * from table where field=0 and field<>?");
 	});
 

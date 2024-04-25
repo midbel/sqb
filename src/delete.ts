@@ -1,6 +1,7 @@
 import { type Sql, type SqlElement, isSql, With } from "./commons";
-import { Binary } from "./predicate";
+import { Filter } from "./predicate";
 import { toStr } from "./helpers";
+import { placeholder } from "./literal";
 
 export class Delete implements Sql {
 	static from(table: SqlElement): Delete {
@@ -8,20 +9,17 @@ export class Delete implements Sql {
 	}
 
 	table: SqlElement;
-	wheres: Array<SqlElement>;
+	_where: Filter;
 	sub: With;
 
 	constructor(table: SqlElement) {
 		this.table = table;
-		this.wheres = [];
+		this._where = Filter.where();
 		this.sub = new With();
 	}
 
 	where(field: SqlElement | Array<SqlElement>): Delete {
-		const fs = Array.isArray(field) ? field : [field];
-		this.wheres = this.wheres.concat(
-			fs.map((f) => (isSql(f) ? f : Binary.eq(f))),
-		);
+		this._where.add(field);
 		return this;
 	}
 
@@ -37,10 +35,8 @@ export class Delete implements Sql {
 		}
 		query.push("delete from");
 		query.push(toStr(this.table));
-		if (this.wheres.length) {
-			const wheres = this.wheres.map(toStr);
-			query.push("where");
-			query.push(wheres.join(" and "));
+		if (this._where.count) {
+			query.push(this._where.sql());
 		}
 		return query.join(" ");
 	}
