@@ -1,4 +1,12 @@
-import { type Sql, type SqlElement, isSql, wrap, Order, Cte } from "./commons";
+import {
+	type Sql,
+	type SqlElement,
+	isSql,
+	wrap,
+	Order,
+	With,
+	Cte,
+} from "./commons";
 import { Binary } from "./predicate";
 import { toStr } from "./helpers";
 
@@ -63,7 +71,7 @@ export class Select implements Sql {
 	uniq: boolean;
 	count?: SqlElement;
 	at?: SqlElement;
-	ctes: Array<Sql>;
+	sub: With;
 	fields: Array<SqlElement>;
 	joins: Array<SqlElement>;
 	wheres: Array<SqlElement>;
@@ -80,7 +88,7 @@ export class Select implements Sql {
 		this.havings = [];
 		this.orders = [];
 		this.wheres = [];
-		this.ctes = [];
+		this.sub = new With();
 	}
 
 	get length(): number {
@@ -92,7 +100,7 @@ export class Select implements Sql {
 	}
 
 	with(cte: Sql): Select {
-		this.ctes.push(cte);
+		this.sub.append(cte);
 		return this;
 	}
 
@@ -186,9 +194,8 @@ export class Select implements Sql {
 
 	sql(): string {
 		const query: Array<string> = [];
-		if (this.ctes.length) {
-			query.push("with");
-			query.push(this.ctes.map(toStr).join(", "));
+		if (this.sub.count > 0) {
+			query.push(this.sub.sql());
 		}
 		query.push("select");
 		if (!this.fields.length) {

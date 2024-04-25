@@ -14,21 +14,28 @@ export function isSql(str: SqlElement): str is Sql {
 }
 
 export class Cte implements Sql {
-	static make(name: string, query: Select, fields?: Array<SqlElement>): Sql {
+	static make(
+		name: string,
+		query: SqlElement,
+		fields?: Array<SqlElement>,
+	): Sql {
 		return new Cte(name, query, fields);
 	}
 
 	name: string;
-	query: Select;
+	query: SqlElement;
 	fields?: Array<SqlElement>;
 
-	constructor(name: string, query: Select, fields?: Array<SqlElement>) {
+	constructor(name: string, query: SqlElement, fields?: Array<SqlElement>) {
 		this.name = name;
 		this.query = query;
 		this.fields = fields;
 	}
 
 	sql(): string {
+		if (!(this.query instanceof Select)) {
+			throw new Error(`cte(${this.name}): expected select query`);
+		}
 		if (
 			this.fields?.length &&
 			this.fields.length > 0 &&
@@ -45,27 +52,45 @@ export class Cte implements Sql {
 			parts[0] = `${parts[0]}${list}`;
 		}
 		parts.push("as");
-		parts.push(`(${this.query.sql()})`);
+		parts.push(`(${toStr(this.query)})`);
 		return parts.join(" ");
 	}
 }
 
-class With implements Sql {
+export class With implements Sql {
 	list: Array<SqlElement>;
 
 	constructor() {
 		this.list = [];
 	}
 
-	define(name: string, query: Select, fields?: Array<SqlElement>): With {
-		const c = Cte.make(name, query, fields);
-		this.list.push(c);
+	get count(): number {
+		return this.list.length;
+	}
+
+	append(query: SqlElement): With {
+		this.list.push(query);
 		return this;
 	}
 
+	define(name: string, query: SqlElement, fields?: Array<SqlElement>): With {
+		const c = Cte.make(name, query, fields);
+		return this.append(c);
+	}
+
 	sql(): string {
+		const seen: Set<string> = new Set();
+		for (const q of this.list) {
+			if (!(q instanceof Cte)) {
+				throw new Error("with: expected cte object");
+			}
+			if (seen.has(q.name)) {
+				throw new Error(`with: cte named '${q.name}' already defined`);
+			}
+			seen.add(q.name);
+		}
 		const parts = this.list.map(toStr);
-		return ["with"].concat(parts).join(", ");
+		return `with ${parts.join(", ")}`;
 	}
 }
 

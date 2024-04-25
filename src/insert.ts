@@ -1,4 +1,4 @@
-import { type Sql, type SqlElement, isSql } from "./commons";
+import { type Sql, type SqlElement, isSql, With } from "./commons";
 import type { Select } from "./select";
 import { placeholder } from "./literal";
 import { toStr } from "./helpers";
@@ -12,12 +12,19 @@ export class Insert implements Sql {
 	query: Select | undefined;
 	columns: Array<SqlElement>;
 	values: Array<SqlElement>;
+	sub: With;
 
 	constructor(table: SqlElement) {
 		this.table = table;
 		this.query = undefined;
 		this.columns = [];
 		this.values = [];
+		this.sub = new With();
+	}
+
+	with(cte: Sql): Insert {
+		this.sub.append(cte);
+		return this;
 	}
 
 	select(query: Select): Insert {
@@ -47,10 +54,11 @@ export class Insert implements Sql {
 		if (this.columns.length === 0 && this.values.length === 0 && !this.query) {
 			throw new Error("insert: missing values/query");
 		}
-		if (this.query) {
-			return this.insertQuery();
+		const query = this.query ? this.insertQuery() : this.insertValues();
+		if (this.sub.count) {
+			return `${this.sub.sql()} query`;
 		}
-		return this.insertValues();
+		return query;
 	}
 
 	private insertQuery(): string {
