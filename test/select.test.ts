@@ -47,22 +47,6 @@ describe("select", () => {
 		expect(q.sql()).toBe("select field1, field2 from table");
 	});
 
-	test("select with cte", () => {
-		const c = Select.from("table").column(["field0", "field1"])
-		const e = Cte.make("cte", c, ["test0", "test1"])
-		const q = Select.from("cte").with(e)
-
-		expect(q.sql()).toBe("with cte(test0, test1) as (select field0, field1 from table) select * from cte")
-	})
-
-	test("select with cte invalid length", () => {
-		const c = Select.from("table").column(["field0", "field1"])
-		const e = Cte.make("cte", c, ["test0"])
-		const q = Select.from("cte").with(e)
-
-		expect(() => q.sql()).toThrow("cte(cte): number of fields mismatched fields in the query")
-	})
-
 	test("select with functions", () => {
 		const q = Select.from("table").column(Exec.count([Column.all()]));
 		expect(q.sql()).toBe("select count(*) from table");
@@ -192,3 +176,33 @@ describe("select", () => {
 		expect(q.sql()).toBe("select * from table order by field asc, t.other asc");
 	});
 });
+
+
+describe("select with cte", () => {
+	test("select with cte", () => {
+		const c = Select.from("table").column(["field0", "field1"])
+		const e = Cte.make("cte", c, ["test0", "test1"])
+		const q = Select.from("cte").with(e)
+
+		expect(q.sql()).toBe("with cte(test0, test1) as (select field0, field1 from table) select * from cte")
+	})
+
+	test("select with cte invalid length", () => {
+		const c = Select.from("table").column(["field0", "field1"])
+		const e = Cte.make("cte", c, ["test0"])
+		const q = Select.from("cte").with(e)
+
+		expect(() => q.sql()).toThrow("cte(cte): number of fields mismatched fields in the query")
+	})
+
+	test("select with duplicate cte name", () => {
+		const c = Select.from("table").column(["field0", "field1"])
+		const e1 = Cte.make("cte", c, ["field0", "field1"])	
+		const e2 = Cte.make("cte", c, ["field0", "field1"])	
+		const q = Select.from("cte")
+			.with(e1)
+			.with(e2)
+
+		expect(() => q.sql()).toThrow("with: cte named 'cte' already defined")
+	})
+})

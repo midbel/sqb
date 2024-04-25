@@ -56,7 +56,7 @@ export class Insert implements Sql {
 		}
 		const query = this.query ? this.insertQuery() : this.insertValues();
 		if (this.sub.count) {
-			return `${this.sub.sql()} query`;
+			return `${this.sub.sql()} ${query}`;
 		}
 		return query;
 	}
