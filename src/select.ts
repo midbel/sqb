@@ -6,6 +6,8 @@ import {
 	Order,
 	With,
 	Cte,
+	Table,
+	WrappedSql,
 } from "./commons";
 import { Filter } from "./predicate";
 import { toStr } from "./helpers";
@@ -68,8 +70,8 @@ export class Select implements Sql {
 		return new Select(table);
 	}
 
-	table: SqlElement;
-	uniq: boolean;
+	_table: Sql;
+	_uniq: boolean;
 	count?: SqlElement;
 	at?: SqlElement;
 	sub: With;
@@ -81,8 +83,12 @@ export class Select implements Sql {
 	orders: Array<SqlElement>;
 
 	constructor(table: SqlElement) {
-		this.table = wrap(table);
-		this.uniq = false;
+		let ts: Sql = typeof table === "string" ? Table.make(table, "", "") : table;
+		if (ts instanceof Select) {
+			ts = new WrappedSql(ts);
+		}
+		this._table = ts;
+		this._uniq = false;
 		this.joins = [];
 		this.fields = [];
 		this._where = Filter.where();
@@ -115,7 +121,7 @@ export class Select implements Sql {
 	}
 
 	distinct(): Select {
-		this.uniq = !this.uniq;
+		this._uniq = !this._uniq;
 		return this;
 	}
 
@@ -196,12 +202,12 @@ export class Select implements Sql {
 		if (!this.fields.length) {
 			this.fields.push("*");
 		}
-		if (this.uniq) {
+		if (this._uniq) {
 			query.push("distinct");
 		}
 		query.push(this.fields.map(toStr).join(", "));
 		query.push("from");
-		query.push(toStr(this.table));
+		query.push(this._table.sql());
 
 		if (this.joins.length) {
 			const joins = this.joins.map(toStr);
