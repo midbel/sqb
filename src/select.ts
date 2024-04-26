@@ -126,7 +126,8 @@ export class Select implements Sql {
 	}
 
 	column(name: SqlElement | Array<SqlElement>): Select {
-		const cs = Array.isArray(name) ? name : [name];
+		let cs = Array.isArray(name) ? name : [name];
+		// cs = cs.map(c => typeof c === "string" ? this._table.column(c) : c).map(wrap)
 		this.fields = this.fields.concat(cs.map(wrap));
 		return this;
 	}
