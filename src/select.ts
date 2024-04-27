@@ -78,7 +78,7 @@ export class Select implements Sql {
 	at?: SqlElement;
 	sub: With;
 	_fields: Array<Sql>;
-	joins: Array<SqlElement>;
+	_joins: Array<Sql>;
 	_where: Filter;
 	groups: Array<SqlElement>;
 	_having: Filter;
@@ -98,7 +98,7 @@ export class Select implements Sql {
 		}
 		this._table = ts;
 		this._uniq = false;
-		this.joins = [];
+		this._joins = [];
 		this._fields = [];
 		this._where = Filter.where();
 		this.groups = [];
@@ -121,11 +121,8 @@ export class Select implements Sql {
 	}
 
 	join(table: string | Join): Select {
-		let tb = table;
-		if (!isSql(table)) {
-			tb = Join.inner(table);
-		}
-		this.joins.push(tb);
+		let tb = typeof table === "string" ? Join.inner(table) : table;
+		this._joins.push(tb);
 		return this;
 	}
 
@@ -245,20 +242,15 @@ export class Select implements Sql {
 			query.push("distinct");
 		}
 		if (this._fields.length) {
-			query.push(
-				this._fields
-					.map(wrap)
-					.map((f) => f.sql())
-					.join(", "),
-			);
+			query.push(this._fields.map(wrap).map(toStr).join(", "));
 		} else {
 			query.push("*");
 		}
 		query.push("from");
 		query.push(this._table.sql());
 
-		if (this.joins.length) {
-			const joins = this.joins.map(toStr);
+		if (this._joins.length) {
+			const joins = this._joins.map((j) => j.sql());
 			query.push(joins.join(" "));
 		}
 
