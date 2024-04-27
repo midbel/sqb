@@ -323,23 +323,28 @@ export class Join implements Sql {
 		return new Join(table, SqlJoinType.Inner);
 	}
 
-	table: SqlElement;
-	join: SqlJoinType;
-	conditions: Array<SqlElement>;
+	_table: SqlElement;
+	_join: SqlJoinType;
+	_conditions: Array<SqlElement>;
 
 	constructor(table: SqlElement, type: SqlJoinType) {
-		this.table = wrap(table);
-		this.join = type;
-		this.conditions = [];
+		this._table = wrap(table);
+		this._join = type;
+		this._conditions = [];
 	}
 
 	on(cdt: Sql): Join {
-		this.conditions.push(wrap(cdt));
+		this._conditions.push(wrap(cdt));
 		return this;
 	}
 
 	sql(): string {
-		const joins = this.conditions.map(toStr);
-		return `${this.join} join ${toStr(this.table)} on ${joins.join(" and ")}`;
+		return [
+			this._join,
+			"join",
+			toStr(this._table),
+			"on",
+			this._conditions.map(toStr).join(" and "),
+		].join(" ");
 	}
 }
