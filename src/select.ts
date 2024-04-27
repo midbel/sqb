@@ -7,11 +7,13 @@ import {
 	With,
 	Cte,
 	Table,
+	Alias,
+	Column,
 	WrappedSql,
 } from "./commons";
 import { Filter } from "./predicate";
 import { toStr } from "./helpers";
-import { placeholder } from "./literal";
+import { Literal, placeholder } from "./literal";
 
 export enum SqlSetOp {
 	Union = "union",
@@ -75,7 +77,7 @@ export class Select implements Sql {
 	count?: SqlElement;
 	at?: SqlElement;
 	sub: With;
-	fields: Array<SqlElement>;
+	_fields: Array<Sql>;
 	joins: Array<SqlElement>;
 	_where: Filter;
 	groups: Array<SqlElement>;
@@ -83,14 +85,21 @@ export class Select implements Sql {
 	orders: Array<SqlElement>;
 
 	constructor(table: SqlElement) {
-		let ts: Sql = typeof table === "string" ? Table.make(table, "", "") : table;
+		let ts: Sql = typeof table === "string" ? Table.make(table, "") : table;
 		if (ts instanceof Select) {
 			ts = new WrappedSql(ts);
+		} else if (ts instanceof Alias) {
+			if (typeof ts.name === "string") {
+				ts.name = Table.make(ts.name);
+			}
+		}
+		if (!Table.asTable(ts)) {
+			throw new Error(`${table} can not be used as table expression`);
 		}
 		this._table = ts;
 		this._uniq = false;
 		this.joins = [];
-		this.fields = [];
+		this._fields = [];
 		this._where = Filter.where();
 		this.groups = [];
 		this._having = Filter.having();
@@ -99,7 +108,7 @@ export class Select implements Sql {
 	}
 
 	get length(): number {
-		return this.fields.length;
+		return this._fields.length;
 	}
 
 	cte(name: string): Sql {
@@ -126,10 +135,36 @@ export class Select implements Sql {
 	}
 
 	column(name: SqlElement | Array<SqlElement>): Select {
-		let cs = Array.isArray(name) ? name : [name];
-		// cs = cs.map(c => typeof c === "string" ? this._table.column(c) : c).map(wrap)
-		this.fields = this.fields.concat(cs.map(wrap));
+		const cs = Array.isArray(name) ? name : [name];
+		this._fields = this._fields.concat(cs.map(this.#prepareColumn.bind(this)));
 		return this;
+	}
+
+	#prepareColumn(c: SqlElement): Sql {
+		if (c instanceof Alias) {
+			c.name = this.#prepareColumn(c.name);
+			return c;
+		}
+		if (c instanceof Column && !c.table) {
+			if (this._table instanceof Table) {
+				c.table = this._table.name;
+				return c;
+			}
+			if (this._table instanceof Alias) {
+				c.table = this._table.alias;
+				return c;
+			}
+		}
+		if (typeof c !== "string") {
+			return c;
+		}
+		if (this._table instanceof Table) {
+			return this._table.column(c);
+		}
+		if (this._table instanceof Alias && this._table.name instanceof Table) {
+			return Column.make(c, this._table.alias);
+		}
+		return Column.make(c, "");
 	}
 
 	where(field: SqlElement | Array<SqlElement>): Select {
@@ -184,12 +219,18 @@ export class Select implements Sql {
 		return this;
 	}
 
-	offset(at: SqlElement): Select {
+	offset(at: SqlElement | number): Select {
+		if (typeof at === "number") {
+			return this.offset(Literal.numeric(at));
+		}
 		this.at = at;
 		return this;
 	}
 
-	limit(count: SqlElement): Select {
+	limit(count: SqlElement | number): Select {
+		if (typeof count === "number") {
+			return this.offset(Literal.numeric(count));
+		}
 		this.count = count;
 		return this;
 	}
@@ -200,13 +241,14 @@ export class Select implements Sql {
 			query.push(this.sub.sql());
 		}
 		query.push("select");
-		if (!this.fields.length) {
-			this.fields.push("*");
-		}
 		if (this._uniq) {
 			query.push("distinct");
 		}
-		query.push(this.fields.map(toStr).join(", "));
+		if (this._fields.length) {
+			query.push(this._fields.map(wrap).map(toStr).join(", "));
+		} else {
+			query.push("*");
+		}
 		query.push("from");
 		query.push(this._table.sql());
 

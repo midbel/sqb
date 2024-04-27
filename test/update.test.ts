@@ -31,7 +31,7 @@ describe("update", () => {
 			.set("field", Literal.bool(true))
 			.set("field", "other")
 			.with(e)
-		expect(q.sql()).toBe("with cte(test0, test1) as (select field0, field1 from table) update table set field=true, field=other")		
+		expect(q.sql()).toBe("with cte(test0, test1) as (select table.field0, table.field1 from table) update table set field=true, field=other")		
 	})
 
 })

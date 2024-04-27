@@ -26,7 +26,7 @@ describe("insert", () => {
 			.where(Binary.eq("id", Literal.str("sql")));
 		const i = Insert.into("table").column(["field1", "field2"]).select(q);
 		expect(i.sql()).toBe(
-			"insert into table (field1, field2) select field1, field2 from table where id='sql'",
+			"insert into table (field1, field2) select table.field1, table.field2 from table where id='sql'",
 		);
 	});
 
@@ -39,7 +39,7 @@ describe("insert", () => {
 			.value([Literal.str("sql"), Literal.numeric(1)])
 			.with(e);
 		expect(q.sql()).toBe(
-			"with cte(test0, test1) as (select field0, field1 from table) insert into table (field1, field2) values ('sql', 1)",
+			"with cte(test0, test1) as (select table.field0, table.field1 from table) insert into table (field1, field2) values ('sql', 1)",
 		);		
 	})
 });

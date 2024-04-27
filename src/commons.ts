@@ -124,36 +124,43 @@ export class Order implements Sql {
 export class Table implements Sql {
 	name: string;
 	schema: string;
-	alias?: string;
 
-	static make(name: string, schema: string, alias?: string): Table {
-		return new Table(name, schema, alias);
+	static make(name: string, schema?: string): Table {
+		return new Table(name, schema || "");
 	}
 
-	constructor(name: string, schema: string, alias?: string) {
+	static asTable(name: unknown): boolean {
+		if (name instanceof Table || name instanceof Select) {
+			return true;
+		}
+		if (name instanceof Alias) {
+			return Table.asTable(name.name);
+		}
+		if (name instanceof WrappedSql) {
+			return Table.asTable(name.wrapped);
+		}
+		return false;
+	}
+
+	constructor(name: string, schema: string) {
 		this.name = isValidIdentifier(name);
 		this.schema = schema ? isValidIdentifier(schema) : schema;
-		this.alias = alias ? isValidIdentifier(alias) : alias;
 	}
 
 	column(name: string, alias?: string): Sql {
-		const c = Column.make(name, this.alias || this.name);
+		const c = Column.make(name, this.name);
 		if (alias) {
 			return Alias.make(c, alias);
 		}
 		return c;
 	}
 
+	as(alias: string): Sql {
+		return Alias.make(this, alias);
+	}
+
 	sql(): string {
-		const parts: Array<string> = [];
-		if (this.schema) {
-			parts.push(this.schema);
-		}
-		parts.push(this.name);
-		if (this.alias) {
-			return Alias.make(parts.join("."), this.alias).sql();
-		}
-		return parts.join(".");
+		return [this.schema, this.name].filter((i) => i).join(".");
 	}
 }
 
@@ -262,13 +269,9 @@ export class Alias implements Sql {
 	}
 
 	sql(): string {
-		const parts: Array<string> = [];
-		parts.push(toStr(this.name));
-		if (Alias.withAs) {
-			parts.push("as");
-		}
-		parts.push(this.alias);
-		return parts.join(" ");
+		return [toStr(this.name), Alias.withAs ? "as" : "", this.alias]
+			.filter((i) => i)
+			.join(" ");
 	}
 }
 
@@ -289,6 +292,10 @@ export class Column implements Sql {
 		this.name = isValidIdentifier(name);
 		this.table = table ? isValidIdentifier(table) : table;
 		this.schema = schema ? isValidIdentifier(schema) : schema;
+	}
+
+	as(alias: string): Sql {
+		return Alias.make(this, alias);
 	}
 
 	sql(): string {
