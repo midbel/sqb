@@ -77,7 +77,7 @@ export class Select implements Sql {
 	count?: SqlElement;
 	at?: SqlElement;
 	sub: With;
-	_fields: Array<SqlElement>;
+	_fields: Array<Sql>;
 	_joins: Array<Sql>;
 	_where: Filter;
 	groups: Array<SqlElement>;
@@ -132,8 +132,14 @@ export class Select implements Sql {
 	}
 
 	column(name: SqlElement | Array<SqlElement>): Select {
+		const prepare = (c: SqlElement): Sql => {
+			if (c instanceof Select) {
+				return new WrappedSql(c);
+			}
+			return typeof c === "string" ? Column.make(c, "") : c;
+		};
 		const cs = Array.isArray(name) ? name : [name];
-		this._fields = this._fields.concat(cs.map(wrap));
+		this._fields = this._fields.concat(cs.map(prepare));
 		return this;
 	}
 
@@ -215,7 +221,7 @@ export class Select implements Sql {
 			query.push("distinct");
 		}
 		if (this._fields.length) {
-			query.push(this._fields.map(toStr).join(", "));
+			query.push(this._fields.map((f) => f.sql()).join(", "));
 		} else {
 			query.push("*");
 		}
