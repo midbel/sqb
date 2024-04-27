@@ -11,7 +11,7 @@ describe("sets", () => {
 		const q1 = Select.from("table1").column("field")
 		const q2 = Select.from("table2").column("field")
 		const q = Sets.union(q1, q2)
-		expect(q.sql()).toBe("select table1.field from table1 union select table2.field from table2")
+		expect(q.sql()).toBe("select field from table1 union select field from table2")
 	})
 
 	test("intersect invalid length", () => {
@@ -38,13 +38,13 @@ describe("select", () => {
 	test("select field", () => {
 		let q = Select.from("table");
 		q = q.column("field");
-		expect(q.sql()).toBe("select table.field from table");
+		expect(q.sql()).toBe("select field from table");
 	});
 
 	test("select multi fields", () => {
 		let q = Select.from("table");
 		q = q.column(["field1", "field2"]);
-		expect(q.sql()).toBe("select table.field1, table.field2 from table");
+		expect(q.sql()).toBe("select field1, field2 from table");
 	});
 
 	test("select with functions", () => {
@@ -54,7 +54,7 @@ describe("select", () => {
 
 	test("select distinct", () => {
 		const q = Select.from("table").distinct().column(["field1", "field2"]);
-		expect(q.sql()).toBe("select distinct table.field1, table.field2 from table");
+		expect(q.sql()).toBe("select distinct field1, field2 from table");
 	});
 
 	test("select with limit and offset", () => {
@@ -74,7 +74,7 @@ describe("select", () => {
 		expect(q.sql()).toBe("select t.field from table t");
 
 		q = Select.from(Table.make("table").as("t")).column("field")
-		expect(q.sql()).toBe("select t.field from table t")
+		expect(q.sql()).toBe("select field from table t")
 	});
 
 	test("select with field and table alias", () => {
@@ -108,7 +108,7 @@ describe("select", () => {
 	test("select with nested select", () => {
 		const q = Select.from("table").column("field");
 		const a = Select.from("table").column(["field", q]);
-		expect(a.sql()).toBe("select table.field, (select table.field from table) from table");
+		expect(a.sql()).toBe("select field, (select field from table) from table");
 	});
 
 	test("select with literal", () => {
@@ -117,7 +117,7 @@ describe("select", () => {
 			.column(Literal.str("string"))
 			.column(Literal.numeric(0))
 			.column(Literal.bool(true));
-		expect(q.sql()).toBe("select table.field, 'string', 0, true from table");
+		expect(q.sql()).toBe("select field, 'string', 0, true from table");
 	});
 
 	test("select with predicate", () => {
@@ -187,7 +187,7 @@ describe("select with cte", () => {
 		const e = Cte.make("cte", c, ["test0", "test1"])
 		const q = Select.from("cte").with(e)
 
-		expect(q.sql()).toBe("with cte(test0, test1) as (select table.field0, table.field1 from table) select * from cte")
+		expect(q.sql()).toBe("with cte(test0, test1) as (select field0, field1 from table) select * from cte")
 	})
 
 	test("select with cte invalid length", () => {

@@ -27,7 +27,7 @@ describe("delete", () => {
 			.where(Binary.eq("field", Literal.numeric(0)))
 			.where(Binary.ne("field"))
 			.with(e);
-		expect(q.sql()).toBe("with cte(test0, test1) as (select table.field0, table.field1 from table) delete from table where field=0 and field<>?");
+		expect(q.sql()).toBe("with cte(test0, test1) as (select field0, field1 from table) delete from table where field=0 and field<>?");
 	})
 
 })

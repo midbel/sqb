@@ -77,7 +77,7 @@ export class Select implements Sql {
 	count?: SqlElement;
 	at?: SqlElement;
 	sub: With;
-	_fields: Array<Sql>;
+	_fields: Array<SqlElement>;
 	_joins: Array<Sql>;
 	_where: Filter;
 	groups: Array<SqlElement>;
@@ -121,7 +121,7 @@ export class Select implements Sql {
 	}
 
 	join(table: string | Join): Select {
-		let tb = typeof table === "string" ? Join.inner(table) : table;
+		const tb = typeof table === "string" ? Join.inner(table) : table;
 		this._joins.push(tb);
 		return this;
 	}
@@ -133,35 +133,8 @@ export class Select implements Sql {
 
 	column(name: SqlElement | Array<SqlElement>): Select {
 		const cs = Array.isArray(name) ? name : [name];
-		this._fields = this._fields.concat(cs.map(this.#prepareColumn.bind(this)));
+		this._fields = this._fields.concat(cs.map(wrap));
 		return this;
-	}
-
-	#prepareColumn(c: SqlElement): Sql {
-		if (c instanceof Alias) {
-			c.name = this.#prepareColumn(c.name);
-			return c;
-		}
-		if (c instanceof Column && !c.table) {
-			if (this._table instanceof Table) {
-				c.table = this._table.name;
-				return c;
-			}
-			if (this._table instanceof Alias) {
-				c.table = this._table.alias;
-				return c;
-			}
-		}
-		if (typeof c !== "string") {
-			return c;
-		}
-		if (this._table instanceof Table) {
-			return this._table.column(c);
-		}
-		if (this._table instanceof Alias && this._table.name instanceof Table) {
-			return Column.make(c, this._table.alias);
-		}
-		return Column.make(c, "");
 	}
 
 	where(field: SqlElement | Array<SqlElement>): Select {
@@ -242,7 +215,7 @@ export class Select implements Sql {
 			query.push("distinct");
 		}
 		if (this._fields.length) {
-			query.push(this._fields.map(wrap).map(toStr).join(", "));
+			query.push(this._fields.map(toStr).join(", "));
 		} else {
 			query.push("*");
 		}
