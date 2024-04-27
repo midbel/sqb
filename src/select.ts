@@ -245,7 +245,12 @@ export class Select implements Sql {
 			query.push("distinct");
 		}
 		if (this._fields.length) {
-			query.push(this._fields.map(wrap).map(toStr).join(", "));
+			query.push(
+				this._fields
+					.map(wrap)
+					.map((f) => f.sql())
+					.join(", "),
+			);
 		} else {
 			query.push("*");
 		}
