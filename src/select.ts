@@ -82,7 +82,7 @@ export class Select implements Sql {
 	_where: Filter;
 	groups: Array<SqlElement>;
 	_having: Filter;
-	orders: Array<SqlElement>;
+	_orders: Array<Sql>;
 
 	constructor(table: SqlElement) {
 		let ts: Sql = typeof table === "string" ? Table.make(table, "") : table;
@@ -103,7 +103,7 @@ export class Select implements Sql {
 		this._where = Filter.where();
 		this.groups = [];
 		this._having = Filter.having();
-		this.orders = [];
+		this._orders = [];
 		this.sub = new With();
 	}
 
@@ -190,8 +190,14 @@ export class Select implements Sql {
 	}
 
 	order(name: SqlElement | Array<SqlElement>): Select {
+		const prepare = (c: SqlElement): Sql => {
+			if (typeof c !== "string") {
+				return c;
+			}
+			return Order.asc(c);
+		};
 		const ns = Array.isArray(name) ? name : [name];
-		this.orders = this.orders.concat(ns);
+		this._orders = this._orders.concat(ns.map(prepare));
 		return this;
 	}
 
@@ -250,10 +256,9 @@ export class Select implements Sql {
 			query.push(this._having.sql());
 		}
 
-		if (this.orders.length) {
-			const orders = this.orders.map(toStr);
+		if (this._orders.length) {
 			query.push("order by");
-			query.push(orders.join(", "));
+			query.push(this._orders.map((f: Sql) => f.sql()).join(", "));
 		}
 
 		if (this.count) {
