@@ -74,8 +74,8 @@ export class Select implements Sql {
 
 	_table: Sql;
 	_uniq: boolean;
-	count?: SqlElement;
-	at?: SqlElement;
+	_count?: Sql;
+	_at?: Sql;
 	sub: With;
 	_fields: Array<Sql>;
 	_joins: Array<Sql>;
@@ -201,19 +201,19 @@ export class Select implements Sql {
 		return this;
 	}
 
-	offset(at: SqlElement | number): Select {
+	offset(at: Sql | number): Select {
 		if (typeof at === "number") {
 			return this.offset(Literal.numeric(at));
 		}
-		this.at = at;
+		this._at = at;
 		return this;
 	}
 
-	limit(count: SqlElement | number): Select {
+	limit(count: Sql | number): Select {
 		if (typeof count === "number") {
 			return this.offset(Literal.numeric(count));
 		}
-		this.count = count;
+		this._count = count;
 		return this;
 	}
 
@@ -261,14 +261,14 @@ export class Select implements Sql {
 			query.push(this._orders.map((f: Sql) => f.sql()).join(", "));
 		}
 
-		if (this.count) {
+		if (this._count) {
 			query.push("limit");
-			query.push(toStr(this.count));
+			query.push(this._count.sql());
 		}
 
-		if (this.at) {
+		if (this._at) {
 			query.push("offset");
-			query.push(toStr(this.at));
+			query.push(this._at.sql());
 		}
 
 		return query.join(" ");
