@@ -166,6 +166,14 @@ describe("select", () => {
 		expect(q.sql()).toBe("select * from table where (field1=0 and field2='foo') or (field1=0 and field2='bar')")
 	})
 
+	test("select with predicate and alias", () => {
+		let q = Select.from("table")
+			.column(Alias.make("field", "f"))
+			.where(Binary.like("f", Literal.str("%value%")))
+
+		expect(() => q.sql()).toThrow()
+	})
+
 	test("select exists", () => {
 		const e = Select.from("table").where(Binary.lt("id", Literal.numeric(150)))
 		let q = Select.from("table").where(Exists.exists(e))

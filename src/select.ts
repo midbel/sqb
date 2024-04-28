@@ -76,11 +76,11 @@ export class Select implements Sql {
 	_uniq: boolean;
 	_count?: Sql;
 	_at?: Sql;
-	sub: With;
+	_with: With;
 	_fields: Array<Sql>;
 	_joins: Array<Sql>;
 	_where: Filter;
-	groups: Array<SqlElement>;
+	_groups: Array<Sql>;
 	_having: Filter;
 	_orders: Array<Sql>;
 
@@ -101,10 +101,10 @@ export class Select implements Sql {
 		this._joins = [];
 		this._fields = [];
 		this._where = Filter.where();
-		this.groups = [];
+		this._groups = [];
 		this._having = Filter.having();
 		this._orders = [];
-		this.sub = new With();
+		this._with = new With();
 	}
 
 	get length(): number {
@@ -116,7 +116,7 @@ export class Select implements Sql {
 	}
 
 	with(cte: Sql): Select {
-		this.sub.append(cte);
+		this._with.append(cte);
 		return this;
 	}
 
@@ -184,8 +184,11 @@ export class Select implements Sql {
 	}
 
 	group(name: SqlElement | Array<SqlElement>): Select {
+		const prepare = (c: SqlElement): Sql => {
+			return typeof c === "string" ? Column.make(c, "") : c;
+		};
 		const ns = Array.isArray(name) ? name : [name];
-		this.groups = this.groups.concat(ns);
+		this._groups = this._groups.concat(ns.map(prepare));
 		return this;
 	}
 
@@ -219,8 +222,8 @@ export class Select implements Sql {
 
 	sql(): string {
 		const query: Array<string> = [];
-		if (this.sub.count > 0) {
-			query.push(this.sub.sql());
+		if (this._with.count > 0) {
+			query.push(this._with.sql());
 		}
 		query.push("select");
 		if (this._uniq) {
@@ -239,39 +242,65 @@ export class Select implements Sql {
 			query.push(joins.join(" "));
 		}
 
-		if (this._where.count) {
-			query.push(this._where.sql());
-		}
+		query.push(this.#getWhere());
+		query.push(this.#getGroup());
+		query.push(this.#getHaving());
+		query.push(this.#getOrder());
+		query.push(this.#getLimit());
+		query.push(this.#getOffset());
 
-		if (this.groups.length) {
-			const groups = this.groups.map(toStr);
-			query.push("group by");
-			query.push(groups.join(", "));
-		}
+		return query.filter((i) => i).join(" ");
+	}
 
-		if (this._having.count) {
-			if (!this.groups.length) {
-				throw new Error("select: having used with group by claused");
+	#getWhere(): string {
+		if (!this._where.count) {
+			return "";
+		}
+		for (const f of this._fields.filter((f) => f instanceof Alias)) {
+			const a = f as Alias;
+			if (this._where.has(a.alias)) {
+				throw new Error(`select: where has no access to alias ${a.alias}`);
 			}
-			query.push(this._having.sql());
 		}
+		return this._where.sql();
+	}
 
-		if (this._orders.length) {
-			query.push("order by");
-			query.push(this._orders.map((f: Sql) => f.sql()).join(", "));
+	#getGroup(): string {
+		if (!this._groups.length) {
+			return "";
 		}
+		return ["group by", this._groups.map((g) => g.sql()).join(", ")].join(" ");
+	}
 
-		if (this._count) {
-			query.push("limit");
-			query.push(this._count.sql());
+	#getHaving(): string {
+		if (!this._having.count) {
+			return "";
 		}
-
-		if (this._at) {
-			query.push("offset");
-			query.push(this._at.sql());
+		if (this._having.count && !this._groups.length) {
+			throw new Error("select: having used with group by claused");
 		}
+		return this._having.sql();
+	}
 
-		return query.join(" ");
+	#getOrder(): string {
+		if (!this._orders.length) {
+			return "";
+		}
+		return ["order by", this._orders.map((o) => o.sql()).join(", ")].join(" ");
+	}
+
+	#getLimit(): string {
+		if (!this._count) {
+			return "";
+		}
+		return `limit ${this._count.sql()}`;
+	}
+
+	#getOffset(): string {
+		if (!this._at) {
+			return "";
+		}
+		return `offset ${this._at.sql()}`;
 	}
 }
 

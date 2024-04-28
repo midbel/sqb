@@ -28,6 +28,18 @@ export class Filter implements Sql {
 		return this.list.length;
 	}
 
+	has(field: string): boolean {
+		return this.list.some((i: SqlElement): boolean => {
+			if (i instanceof Between) {
+			} else if (i instanceof Is) {
+			} else if (i instanceof In) {
+			} else if (i instanceof Binary) {
+			} else if (i instanceof Relation) {
+			}
+			return false;
+		});
+	}
+
 	add(w: SqlElement | SqlElement[]): Filter {
 		const ws = Array.isArray(w) ? w : [w];
 		this.list = this.list.concat(ws);
@@ -151,6 +163,9 @@ export class Binary implements Sql {
 	}
 
 	sql(): string {
+		if (this.op === SqlCmpOp.Like) {
+			return `${toStr(this.left)} ${this.op} ${toStr(this.right)}`;
+		}
 		return `${toStr(this.left)}${this.op}${toStr(this.right)}`;
 	}
 }
