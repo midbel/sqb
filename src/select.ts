@@ -269,6 +269,28 @@ export class Select implements Sql {
 		if (!this._groups.length) {
 			return "";
 		}
+		const fields = this._fields
+			.filter((g: Sql): boolean => {
+				return (
+					g instanceof Column ||
+					(g instanceof Alias && g.name instanceof Column)
+				);
+			})
+			.map((g: Sql): string => {
+				if (g instanceof Alias && g.name instanceof Column) {
+					return g.name.name;
+				}
+				return g instanceof Column ? g.name : "";
+			})
+			.filter((i) => i);
+		for (const f of fields) {
+			const ok = this._groups.find((g) => {
+				return g instanceof Column && g.name === f;
+			});
+			if (!ok) {
+				throw new Error(`select: column ${f} not defined in group by clause`);
+			}
+		}
 		return ["group by", this._groups.map((g) => g.sql()).join(", ")].join(" ");
 	}
 

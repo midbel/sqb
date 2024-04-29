@@ -186,6 +186,20 @@ describe("select", () => {
 			.order(Order.asc(Column.make("other", "t")));
 		expect(q.sql()).toBe("select * from table order by field asc, t.other asc");
 	});
+
+	test("select with groups", () => {
+		const q = Select.from("table")
+			.column(["field0", Exec.count(["field1"])])
+			.group("field0")
+		expect(q.sql()).toBe("select field0, count(field1) from table group by field0")
+	})
+
+	test("select with groups and not aggregate field", () => {
+		const q = Select.from("table")
+			.column(["field0", "field1"])
+			.group("field0")
+		expect(() => q.sql()).toThrow()
+	})
 });
 
 

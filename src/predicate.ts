@@ -340,6 +340,38 @@ export class Is implements Sql {
 	}
 }
 
+export enum SqlCheckType {
+	All = "all",
+	Any = "any",
+	Some = "some",
+}
+
+export class Check implements Sql {
+	static all(args: SqlElement[]): Sql {
+		return new Check(SqlCheckType.All, args);
+	}
+
+	static any(args: SqlElement[]): Sql {
+		return new Check(SqlCheckType.Any, args);
+	}
+
+	static some(args: SqlElement[]): Sql {
+		return new Check(SqlCheckType.Some, args);
+	}
+
+	type: SqlCheckType;
+	args: Array<SqlElement>;
+
+	constructor(type: SqlCheckType, args: Array<SqlElement>) {
+		this.type = type;
+		this.args = args;
+	}
+
+	sql(): string {
+		return "";
+	}
+}
+
 export class Exists implements Sql {
 	static exists(query: Sql): Sql {
 		return new Exists(query);
