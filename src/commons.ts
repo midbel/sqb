@@ -9,8 +9,16 @@ export interface Sql {
 
 export type SqlElement = string | Sql;
 
-export function isSql(str: SqlElement): str is Sql {
+export function isSql(str: unknown): str is Sql {
 	return (str as Sql).sql !== undefined;
+}
+
+export interface Has {
+	has(field: string): boolean;
+}
+
+export function isHas(val: unknown): val is Has {
+	return (val as Has).has !== undefined;
 }
 
 export class Cte implements Sql {

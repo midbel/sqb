@@ -1,4 +1,4 @@
-import { type Sql, isSql, wrap } from "./commons";
+import { type Sql, isSql, wrap, isHas } from "./commons";
 
 export enum SqlOp {
 	Add = "+",
@@ -37,6 +37,14 @@ export class Expr implements Sql {
 		this.left = wrap(left);
 		this.right = wrap(right);
 		this.op = op;
+	}
+
+	has(field: string): boolean {
+		return [this.left, this.right].some((i: string | Sql | Expr): boolean => {
+			return (
+				(isHas(i) && i.has(field)) || (typeof i === "string" && i === field)
+			);
+		});
 	}
 
 	add(right: Sql | Expr): Expr {

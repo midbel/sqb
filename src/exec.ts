@@ -1,5 +1,6 @@
-import type { Sql, SqlElement } from "./commons";
+import { type Sql, type SqlElement, Column, isHas } from "./commons";
 import { toStr } from "./helpers";
+import { Literal } from "./literal";
 
 const scalars = new Set([
 	"length",
@@ -102,6 +103,16 @@ export class Exec implements Function {
 	constructor(fn: string, args: Array<SqlElement>) {
 		this.fn = fn;
 		this.args = args;
+	}
+
+	has(field: string): boolean {
+		return this.args.some((i: SqlElement): boolean => {
+			return (
+				(i instanceof Column && i.name === field) ||
+				(isHas(i) && i.has(field)) ||
+				(typeof i === "string" && i === field)
+			);
+		});
 	}
 
 	sql(): string {

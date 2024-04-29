@@ -1,4 +1,11 @@
-import { type Sql, type SqlElement, isSql, Column, wrap } from "./commons";
+import {
+	type Sql,
+	type SqlElement,
+	isSql,
+	Column,
+	isHas,
+	wrap,
+} from "./commons";
 import { placeholder } from "./literal";
 import { toStr } from "./helpers";
 
@@ -30,13 +37,7 @@ export class Filter implements Sql {
 
 	has(field: string): boolean {
 		return this.list.some((i: SqlElement): boolean => {
-			if (i instanceof Between || i instanceof Is || i instanceof In) {
-				return i.name === field;
-			}
-			if (i instanceof Relation || i instanceof Binary) {
-				return i.has(field);
-			}
-			return false;
+			return isHas(i) && i.has(field);
 		});
 	}
 
@@ -164,13 +165,13 @@ export class Binary implements Sql {
 
 	has(field: string): boolean {
 		return [this.left, this.right].some((col: SqlElement): boolean => {
-			if (typeof col === "string") {
-				return col === field;
-			}
 			if (col instanceof Column) {
 				return col.name === field;
 			}
-			return false;
+			return (
+				(isHas(col) && col.has(field)) ||
+				(typeof col === "string" && col === field)
+			);
 		});
 	}
 
@@ -218,6 +219,16 @@ export class Between implements Sql {
 		return "?";
 	}
 
+	has(field: string): boolean {
+		return [this.field, this.left, this.right].some(
+			(i: SqlElement): boolean => {
+				return (
+					(isHas(i) && i.has(field)) || (typeof i === "string" && i === field)
+				);
+			},
+		);
+	}
+
 	negate(): Sql {
 		this.not = !this.not;
 		return this;
@@ -257,13 +268,24 @@ export class In implements Sql {
 	}
 
 	get name(): string {
-		if (typeof this.field === "string") {
-			return this.field;
-		}
 		if (this.field instanceof Column) {
 			return this.field.name;
 		}
-		return "?";
+		return typeof this.field === "string" ? this.field : "";
+	}
+
+	has(field: string): boolean {
+		return (
+			this.name === field ||
+			this.values.some((i: SqlElement): boolean => {
+				if (i instanceof Column) {
+					return i.name === field;
+				}
+				return (
+					(isHas(i) && i.has(field)) || (typeof i === "string" && i === field)
+				);
+			})
+		);
 	}
 
 	sql(): string {
@@ -297,13 +319,14 @@ export class Is implements Sql {
 	}
 
 	get name(): string {
-		if (typeof this.field === "string") {
-			return this.field;
-		}
 		if (this.field instanceof Column) {
 			return this.field.name;
 		}
-		return "?";
+		return typeof this.field === "string" ? this.field : "";
+	}
+
+	has(field: string): boolean {
+		return this.name === field;
 	}
 
 	negate(): Sql {
@@ -357,13 +380,7 @@ export class Relation implements Sql {
 
 	has(field: string): boolean {
 		return this._args.some((i: SqlElement): boolean => {
-			if (i instanceof Between || i instanceof Is || i instanceof In) {
-				return i.name === field;
-			}
-			if (i instanceof Relation || i instanceof Binary) {
-				return i.has(field);
-			}
-			return false;
+			return isHas(i) && i.has(field);
 		});
 	}
 
