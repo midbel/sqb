@@ -94,7 +94,7 @@ export class Select implements Sql {
 			}
 		}
 		if (!Table.asTable(ts)) {
-			throw new Error(`${table} can not be used as table expression`);
+			throw new Error(`select: ${table} can not be used as table expression`);
 		}
 		this._table = ts;
 		this._uniq = false;

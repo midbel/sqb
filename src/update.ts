@@ -1,35 +1,61 @@
-import { type Sql, type SqlElement, isSql, With } from "./commons";
+import {
+	type Sql,
+	type SqlElement,
+	isSql,
+	With,
+	Table,
+	Alias,
+} from "./commons";
 import { Filter } from "./predicate";
 import { toStr } from "./helpers";
 import { placeholder } from "./literal";
+import { type Select, Join } from "./select";
 
 export class Update implements Sql {
 	static update(table: SqlElement): Update {
 		return new Update(table);
 	}
 
-	table: SqlElement;
-	columns: Array<SqlElement>;
-	values: Array<SqlElement>;
+	_target: Sql;
+	_joins: Array<Sql>;
+	_columns: Array<SqlElement>;
+	_values: Array<SqlElement>;
 	_where: Filter;
-	sub: With;
+	_with: With;
 
 	constructor(table: SqlElement) {
-		this.table = table;
-		this.columns = [];
-		this.values = [];
+		const target: Sql =
+			typeof table === "string" ? Table.make(table, "") : table;
+		if (target instanceof Alias) {
+			if (typeof target.name === "string") {
+				target.name = Table.make(target.name);
+			}
+		}
+		if (!Table.asTable(target)) {
+			throw new Error(`select: ${table} can not be used as table expression`);
+		}
+		this._target = target;
+		this._joins = [];
+		this._columns = [];
+		this._values = [];
 		this._where = Filter.where();
-		this.sub = new With();
+		this._with = new With();
 	}
 
 	with(cte: Sql): Update {
-		this.sub.append(cte);
+		this._with.append(cte);
 		return this;
 	}
 
-	set(field: SqlElement, value: SqlElement): Update {
-		this.columns.push(field);
-		this.values.push(value);
+	join(table: string | Join): Update {
+		const tb = typeof table === "string" ? Join.inner(table) : table;
+		this._joins.push(tb);
+		return this;
+	}
+
+	set(field: SqlElement, value?: SqlElement): Update {
+		this._columns.push(field);
+		this._values.push(value || placeholder());
 		return this;
 	}
 
@@ -39,20 +65,59 @@ export class Update implements Sql {
 	}
 
 	sql(): string {
-		if (this.values.length > 0 && this.columns.length !== this.values.length) {
+		if (
+			this._values.length > 0 &&
+			this._columns.length !== this._values.length
+		) {
 			throw new Error("update: number of columns/values mismatched");
 		}
+		if (this._joins.length) {
+			return this.#updateJoins();
+		}
+		return this.#updateValues();
+	}
 
+	#updateJoins(): string {
 		const query: Array<string> = [];
-		if (this.sub.count) {
-			query.push(this.sub.sql());
+		if (this._with.count) {
+			query.push(this._with.sql());
 		}
 		query.push("update");
-		query.push(toStr(this.table));
+		if (this._target instanceof Alias) {
+			query.push(this._target.alias);
+		} else {
+			query.push(this._target.sql());
+		}
 		query.push("set");
-		const fields: Array<string> = this.columns.map(
+		const fields: Array<string> = this._columns.map(
 			(c: SqlElement, i: number) => {
-				return `${toStr(c)}=${toStr(this.values[i])}`;
+				return `${toStr(c)}=${toStr(this._values[i])}`;
+			},
+		);
+		query.push(fields.join(", "));
+		query.push("from");
+		query.push(this._target.sql());
+		if (this._joins.length) {
+			const joins = this._joins.map((j) => j.sql());
+			query.push(joins.join(" "));
+		}
+		if (this._where.count) {
+			query.push(this._where.sql());
+		}
+		return query.join(" ");
+	}
+
+	#updateValues(): string {
+		const query: Array<string> = [];
+		if (this._with.count) {
+			query.push(this._with.sql());
+		}
+		query.push("update");
+		query.push(this._target.sql());
+		query.push("set");
+		const fields: Array<string> = this._columns.map(
+			(c: SqlElement, i: number) => {
+				return `${toStr(c)}=${toStr(this._values[i])}`;
 			},
 		);
 		query.push(fields.join(", "));
