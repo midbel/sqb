@@ -7,3 +7,5 @@ export * from "./literal";
 export * from "./predicate";
 export * from "./select";
 export * from "./update";
+export * from "./call";
+export * from "./merge";

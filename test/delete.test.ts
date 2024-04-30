@@ -1,9 +1,16 @@
 import { describe, expect, test } from "vitest";
-import { Delete } from "../src/delete";
+import { Delete, Truncate } from "../src/delete";
 import { Select } from "../src/select";
 import { Cte } from "../src/commons";
 import { Binary } from "../src/predicate";
 import { Literal } from "../src/literal";
+
+describe("truncate", () => {
+	test("truncate table", () => {
+		let q = Truncate.table("table")
+		expect(q.sql()).toBe("truncate table")
+	})
+})
 
 describe("delete", () => {
 
