@@ -3,6 +3,19 @@ import { Case } from "../src/commons"
 import { Literal, Expr } from "../src/literal"
 import { Exec } from "../src/exec"
 import { Binary } from "../src/predicate"
+import { Call } from '../src/call'
+
+describe("call", () => {
+	test("call no args", () => {
+		const q = Call.call("proc")
+		expect(q.sql()).toBe("call proc ()")
+	})
+
+	test("call with args", () => {
+		const q = Call.call("proc", [Literal.numeric(100), Literal.str("foobar")])
+		expect(q.sql()).toBe("call proc (100, 'foobar')")
+	})
+})
 
 describe("case", () => {
 
