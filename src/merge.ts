@@ -8,9 +8,6 @@ export class Merge implements Sql {
 	_target: Sql;
 	_using: Sql | undefined;
 	_with: With;
-	_updates: Array<Sql>;
-	_inserts: Array<Sql>;
-	_deletes: Array<Sql>;
 
 	constructor(table: SqlElement) {
 		const target: Sql =
@@ -24,9 +21,6 @@ export class Merge implements Sql {
 			throw new Error(`select: ${table} can not be used as table expression`);
 		}
 		this._target = target;
-		this._updates = [];
-		this._deletes = [];
-		this._inserts = [];
 		this._with = new With();
 	}
 
@@ -34,31 +28,19 @@ export class Merge implements Sql {
 		return this;
 	}
 
-	update(
-		fields: Array<Sql>,
-		values: Array<Sql>,
-		conditions?: Array<Sql>,
-	): Merge {
-		return this;
-	}
-
-	delete(
-		fields: Array<Sql>,
-		values: Array<Sql>,
-		conditions?: Array<Sql>,
-	): Merge {
-		return this;
-	}
-
-	insert(
-		fields: Array<Sql>,
-		values: Array<Sql>,
-		conditions?: Array<Sql>,
-	): Merge {
+	with(cte: Sql): Merge {
+		this._with.append(cte);
 		return this;
 	}
 
 	sql(): string {
-		return `merge into ${this._target.sql()}`;
+		const query: Array<string> = [];
+		if (this._with.count > 0) {
+			query.push(this._with.sql());
+		}
+		query.push("merge into");
+		query.push(this._target.sql());
+		query.push("using");
+		return query.join(" ");
 	}
 }
