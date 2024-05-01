@@ -292,6 +292,10 @@ export class Column implements Sql {
 		return new Column("*", table, "");
 	}
 
+	static placeholder(): Sql {
+		return new Column("?", "", "");
+	}
+
 	name: string;
 	table: string;
 	schema: string;
@@ -331,7 +335,7 @@ export function wrap(q: SqlElement): SqlElement {
 }
 
 export function isValidIdentifier(ident: string): string {
-	if (ident === "*") {
+	if (ident === "*" || ident === "?") {
 		return ident;
 	}
 	const re = /[a-zA-Z][a-zA-Z0-9_]*/;
