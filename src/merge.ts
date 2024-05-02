@@ -120,7 +120,7 @@ export class Merge implements Sql {
 		predicate?: Sql,
 	): Merge {
 		let vs = values;
-		if (!vs) {
+		if (!vs || vs.length === 0) {
 			vs = columns.map(() => Column.placeholder());
 		}
 		this._update.push(
@@ -145,7 +145,7 @@ export class Merge implements Sql {
 		predicate?: Sql,
 	): Merge {
 		let vs = values;
-		if (!vs) {
+		if (!vs || vs.length === 0) {
 			vs = columns.map(() => Column.placeholder());
 		}
 		this._insert.push(
@@ -176,7 +176,6 @@ export class Merge implements Sql {
 		query.push(this._using.sql());
 		query.push("on");
 		query.push(this._join.sql());
-		query.push();
 		for (const m of this._insert) {
 			query.push("when not matched");
 			if (m._predicate) {

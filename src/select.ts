@@ -111,6 +111,10 @@ export class Select implements Sql {
 		return this._fields.length;
 	}
 
+	as(alias: string): Sql {
+		return Alias.make(this, alias);
+	}
+
 	cte(name: string): Sql {
 		return Cte.make(name, this);
 	}
