@@ -11,6 +11,15 @@ sqb provides functions and types to build commons SQL statements like:
 
 It also provides functions to help you build conditions, expressions and some most of the commons used SQL functions like `count`, `avg`, `coalesce`, `ifnull`, etc.
 
+## Why you will need (or not) sqb?
+
+Because
+
+1. you don't want to write raw SQL in your JS/TS code
+2. you dont' want to use a full featured ORM
+3. you just want to try another SQL builder before dropping it
+4. any other reasons are welcome
+
 ## Install
 
 ```bash
@@ -18,6 +27,8 @@ npm install -D @midbel/sqb
 ```
 
 ## Quick Start
+
+This section give you some quick snippets to show you how to use sqb.
 
 ```js
 import { Select } from '@midbel/sqb'
