@@ -97,6 +97,10 @@ export class Exec implements Function {
 		return new Exec("max", args);
 	}
 
+	static currentDate(): Sql {
+		return new Exec("current_date");
+	}
+
 	fn: string;
 	args: Array<SqlElement>;
 

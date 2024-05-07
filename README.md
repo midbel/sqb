@@ -9,16 +9,7 @@ sqb provides functions and types to build commons SQL statements like:
 * Update
 * Delete
 
-It also provides functions to help you build conditions, expressions and some most of the commons used SQL functions like `count`, `avg`, `coalesce`, `ifnull`, etc.
-
-## Why you will need (or not) sqb?
-
-Because
-
-1. you don't want to write raw SQL in your JS/TS code
-2. you dont' want to use a full featured ORM
-3. you just want to try another SQL builder before dropping it
-4. any other reasons are welcome
+It provides functions to help you build conditions, expressions and some SQL functions like `count`, `avg`, `coalesce`, `ifnull`, etc.
 
 ## Install
 
@@ -26,14 +17,68 @@ Because
 npm install -D @midbel/sqb
 ```
 
-## Quick Start
+## Queries
 
-This section give you some quick snippets to show you how to use sqb.
+sqb provides one builder per type of SQL statement. The following builder are currently available:
+
+* Select
+* Update
+* Insert
+* Delete
+* Truncate
+* Merge
+
+See the following sections for their usage
+
+### Select
 
 ```js
-import { Select } from '@midbel/sqb'
+import { Select, Binary, placeholder } from '@midbel/sqb'
 
 const q = Select.from('employees')
-	.column(["firstname", "lastname"]);
-console.log(q.sql()) // select firstname, lastname from employees
+	.column(["firstname", "lastname"])
+	.where(Binary.eq("department", placeholder()))
+console.log(q.sql())
+```
+```shell
+select firstname, lastname from employees where department=?
+```
+
+### Delete
+
+```js
+import { Delete } from '@midbel/sqb'
+const q = Delete.from("employees").where(Binary.eq("department", Literal.str("HR")))
+console.log(q)
+```
+```shell
+delete from employees where department='HR'
+```
+
+### Insert
+
+```js
+import { Insert, Exec, placeholder } from '@midbel/sqb'
+
+const q = Insert.into("employees")
+	.column(['id', 'firstname', 'lastname', 'department', 'hired_date'])
+	.value(['default', placeholder(), placeholder(), placeholder(), Exec.currentDate()])
+console.log(q.sql())
+```
+```shell
+insert into employees(id, firstname, lastname, department, hired_date) values (default, ?, ?, ?, current_date)
+```
+
+### Update
+
+```js
+import { Update, Binary, Literal, placeholder } from '@midbel/sqb'
+const q = Update.update("employees")
+	.set("department", Literal.str("it"))
+	.where(Binary.eq("id", placeholder()))
+
+console.log(q.sql()) // 
+```
+```shell
+update employees set department='IT' where id=?
 ```
