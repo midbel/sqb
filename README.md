@@ -28,7 +28,7 @@ sqb provides one builder per type of SQL statement. The following builder are cu
 * Truncate
 * Merge
 
-See the following sections for their usage
+See the following sections for their usage.
 
 ### Select
 
