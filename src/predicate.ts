@@ -42,7 +42,7 @@ export class Filter implements Sql {
 	}
 
 	add(w: SqlElement | SqlElement[]): Filter {
-		const ws = Array.isArray(w) ? w : [w];
+		const ws = (Array.isArray(w) ? w : [w]).map(wrap);
 		this.list = this.list.concat(ws);
 		return this;
 	}

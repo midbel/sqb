@@ -153,7 +153,7 @@ describe("select", () => {
 		expect(q2.sql()).toBe("select * from table where field is not null")
 	})
 
-	test("select with predicate: and/or", () => {
+	test("select with predicate v1: and/or", () => {
 		let and1 = Relation.and([
 			Binary.eq("field1", Literal.numeric(0)), 
 			Binary.eq("field2", Literal.str('foo'))
@@ -163,7 +163,20 @@ describe("select", () => {
 			Binary.eq("field2", Literal.str('bar'))
 		])
 		let q = Select.from("table").where(Relation.or([and1, and2]))
-		expect(q.sql()).toBe("select * from table where (field1=0 and field2='foo') or (field1=0 and field2='bar')")
+		expect(q.sql()).toBe("select * from table where ((field1=0 and field2='foo') or (field1=0 and field2='bar'))")
+	})
+
+	test("select with predicate v2: and/or", () => {
+		let or1 = Relation.or([
+			Binary.eq("field1", Literal.numeric(0)), 
+			Binary.eq("field2", Literal.str('foo'))
+		])
+		let or2 = Relation.or([
+			Binary.eq("field1", Literal.numeric(0)), 
+			Binary.eq("field2", Literal.str('bar'))
+		])
+		let q = Select.from("table").where(or1).where(or2)
+		expect(q.sql()).toBe("select * from table where (field1=0 or field2='foo') and (field1=0 or field2='bar')")
 	})
 
 	test("select with predicate and alias", () => {
