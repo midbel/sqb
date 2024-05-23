@@ -98,7 +98,7 @@ export class Exec implements Function {
 	}
 
 	static currentDate(): Sql {
-		return new Exec("current_date");
+		return new Exec("current_date", []);
 	}
 
 	fn: string;
