@@ -17,7 +17,10 @@ describe("select shortcut", () => {
 
 	test("basic select v3", () => {
 		let q = select(
-			[alias("a", column("f0")), alias("b", column("f1"))],
+			[
+				alias("a", column("f0")), 
+				alias("b", column("f1"))
+			],
 			table("t0", "db"),
 			[innerJoin("t1", [eq("id0", "id1")])]
 		)

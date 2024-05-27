@@ -133,14 +133,9 @@ export function select(
 	limit?: Sql,
 	offset?: Sql,
 ): Sql {
-	let q = Select.from(table);
-	q = q.column(columns);
-	for (const w of where) {
-		q = q.where(w);
-	}
-	for (const j of joins) {
-		q = q.join(j);
-	}
+	let q = Select.from(table).column(columns);
+	where.forEach((w) => (q = q.where(w)));
+	joins.forEach((j) => (q = q.join(j)));
 	return q;
 }
 
