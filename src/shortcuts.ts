@@ -1,4 +1,4 @@
-import { Select } from "./select";
+import { Select, Join } from "./select";
 import {
 	type SqlElement,
 	type Sql,
@@ -137,6 +137,9 @@ export function select(
 	q = q.column(columns);
 	for (const w of where) {
 		q = q.where(w);
+	}
+	for (const j of joins) {
+		q = q.join(j);
 	}
 	return q;
 }
